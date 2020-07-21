@@ -1264,11 +1264,28 @@ final class MethodWriter extends MethodVisitor {
         lastBasicBlock.nextBasicBlock = label;
       }
       lastBasicBlock = label;
-    } else if (compute == COMPUTE_MAX_STACK_AND_LOCAL_FROM_FRAMES && currentBasicBlock == null) {
+    } else if (compute == COMPUTE_MAX_STACK_AND_LOCAL_FROM_FRAMES) {
+
       // This case should happen only once, for the visitLabel call in the constructor. Indeed, if
       // compute is equal to COMPUTE_MAX_STACK_AND_LOCAL_FROM_FRAMES, currentBasicBlock stays
       // unchanged.
-      currentBasicBlock = label;
+      if (currentBasicBlock == null) {
+        currentBasicBlock = label;
+      }
+
+      if (lastHandler != null) {
+        Handler handler = lastHandler;
+        while (handler != null) {
+          if (handler.handlerPc == label) {
+            // visit catch block label, deal with throw exception instance
+            if (lastHandler.catchTypeDescriptor != null) {
+              relativeStackSize += 1;
+            }
+            break;
+          }
+          handler = handler.nextHandler;
+        }
+      }
     }
   }
 
