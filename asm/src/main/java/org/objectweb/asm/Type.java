@@ -250,7 +250,7 @@ public final class Type {
    */
   public static Type getObjectType(final String internalName) {
     return new Type(
-        internalName.charAt(0) == '[' ? ARRAY : INTERNAL, internalName, 0, internalName.length());
+        internalName.startsWith("[") ? ARRAY : INTERNAL, internalName, 0, internalName.length());
   }
 
   /**
