@@ -516,7 +516,7 @@ public class ClassWriter extends ClassVisitor {
     int attributesCount = 0;
     if (innerClasses != null) {
       ++attributesCount;
-      size += 8 + innerClasses.length;
+      size += 8 + innerClasses.size();
       symbolTable.addConstantUtf8(Constants.INNER_CLASSES);
     }
     if (enclosingClassIndex != 0) {
@@ -541,7 +541,7 @@ public class ClassWriter extends ClassVisitor {
     }
     if (debugExtension != null) {
       ++attributesCount;
-      size += 6 + debugExtension.length;
+      size += 6 + debugExtension.size();
       symbolTable.addConstantUtf8(Constants.SOURCE_DEBUG_EXTENSION);
     }
     if ((accessFlags & Opcodes.ACC_DEPRECATED) != 0) {
@@ -588,12 +588,12 @@ public class ClassWriter extends ClassVisitor {
     }
     if (nestMemberClasses != null) {
       ++attributesCount;
-      size += 8 + nestMemberClasses.length;
+      size += 8 + nestMemberClasses.size();
       symbolTable.addConstantUtf8(Constants.NEST_MEMBERS);
     }
     if (permittedSubclasses != null) {
       ++attributesCount;
-      size += 8 + permittedSubclasses.length;
+      size += 8 + permittedSubclasses.size();
       symbolTable.addConstantUtf8(Constants.PERMITTED_SUBCLASSES);
     }
     int recordComponentCount = 0;
@@ -653,9 +653,9 @@ public class ClassWriter extends ClassVisitor {
     if (innerClasses != null) {
       result
           .putShort(symbolTable.addConstantUtf8(Constants.INNER_CLASSES))
-          .putInt(innerClasses.length + 2)
+          .putInt(innerClasses.size() + 2)
           .putShort(numberOfInnerClasses)
-          .putByteArray(innerClasses.data, 0, innerClasses.length);
+          .putByteArray(innerClasses.data, 0, innerClasses.size());
     }
     if (enclosingClassIndex != 0) {
       result
@@ -680,7 +680,7 @@ public class ClassWriter extends ClassVisitor {
           .putShort(sourceFileIndex);
     }
     if (debugExtension != null) {
-      int length = debugExtension.length;
+      int length = debugExtension.size();
       result
           .putShort(symbolTable.addConstantUtf8(Constants.SOURCE_DEBUG_EXTENSION))
           .putInt(length)
@@ -709,16 +709,16 @@ public class ClassWriter extends ClassVisitor {
     if (nestMemberClasses != null) {
       result
           .putShort(symbolTable.addConstantUtf8(Constants.NEST_MEMBERS))
-          .putInt(nestMemberClasses.length + 2)
+          .putInt(nestMemberClasses.size() + 2)
           .putShort(numberOfNestMemberClasses)
-          .putByteArray(nestMemberClasses.data, 0, nestMemberClasses.length);
+          .putByteArray(nestMemberClasses.data, 0, nestMemberClasses.size());
     }
     if (permittedSubclasses != null) {
       result
           .putShort(symbolTable.addConstantUtf8(Constants.PERMITTED_SUBCLASSES))
-          .putInt(permittedSubclasses.length + 2)
+          .putInt(permittedSubclasses.size() + 2)
           .putShort(numberOfPermittedSubclasses)
-          .putByteArray(permittedSubclasses.data, 0, permittedSubclasses.length);
+          .putByteArray(permittedSubclasses.data, 0, permittedSubclasses.size());
     }
     if ((accessFlags & Opcodes.ACC_RECORD) != 0 || firstRecordComponent != null) {
       result

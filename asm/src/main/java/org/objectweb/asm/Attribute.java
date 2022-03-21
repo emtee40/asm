@@ -221,7 +221,7 @@ public class Attribute {
     Attribute attribute = this;
     while (attribute != null) {
       symbolTable.addConstantUtf8(attribute.type);
-      size += 6 + attribute.write(classWriter, code, codeLength, maxStack, maxLocals).length;
+      size += 6 + attribute.write(classWriter, code, codeLength, maxStack, maxLocals).size();
       attribute = attribute.nextAttribute;
     }
     return size;
@@ -310,8 +310,8 @@ public class Attribute {
       ByteVector attributeContent =
           attribute.write(classWriter, code, codeLength, maxStack, maxLocals);
       // Put attribute_name_index and attribute_length.
-      output.putShort(symbolTable.addConstantUtf8(attribute.type)).putInt(attributeContent.length);
-      output.putByteArray(attributeContent.data, 0, attributeContent.length);
+      output.putShort(symbolTable.addConstantUtf8(attribute.type)).putInt(attributeContent.size());
+      output.putByteArray(attributeContent.data, 0, attributeContent.size());
       attribute = attribute.nextAttribute;
     }
   }

@@ -385,10 +385,10 @@ public class Label {
       final ByteVector code, final int sourceInsnBytecodeOffset, final boolean wideReference) {
     if ((flags & FLAG_RESOLVED) == 0) {
       if (wideReference) {
-        addForwardReference(sourceInsnBytecodeOffset, FORWARD_REFERENCE_TYPE_WIDE, code.length);
+        addForwardReference(sourceInsnBytecodeOffset, FORWARD_REFERENCE_TYPE_WIDE, code.size());
         code.putInt(-1);
       } else {
-        addForwardReference(sourceInsnBytecodeOffset, FORWARD_REFERENCE_TYPE_SHORT, code.length);
+        addForwardReference(sourceInsnBytecodeOffset, FORWARD_REFERENCE_TYPE_SHORT, code.size());
         code.putShort(-1);
       }
     } else {

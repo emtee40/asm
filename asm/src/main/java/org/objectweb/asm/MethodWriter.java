@@ -767,7 +767,7 @@ final class MethodWriter extends MethodVisitor {
         implicitFirstFrame.accept(this);
       }
       currentLocals = numLocal;
-      int frameIndex = visitFrameStart(code.length, numLocal, numStack);
+      int frameIndex = visitFrameStart(code.size(), numLocal, numStack);
       for (int i = 0; i < numLocal; ++i) {
         currentFrame[frameIndex++] = Frame.getAbstractTypeFromApiFormat(symbolTable, local[i]);
       }
@@ -782,9 +782,9 @@ final class MethodWriter extends MethodVisitor {
       int offsetDelta;
       if (stackMapTableEntries == null) {
         stackMapTableEntries = new ByteVector();
-        offsetDelta = code.length;
+        offsetDelta = code.size();
       } else {
-        offsetDelta = code.length - previousFrameOffset - 1;
+        offsetDelta = code.size() - previousFrameOffset - 1;
         if (offsetDelta < 0) {
           if (type == Opcodes.F_SAME) {
             return;
@@ -838,7 +838,7 @@ final class MethodWriter extends MethodVisitor {
           throw new IllegalArgumentException();
       }
 
-      previousFrameOffset = code.length;
+      previousFrameOffset = code.size();
       ++stackMapTableNumberOfEntries;
     }
 
@@ -860,7 +860,7 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitInsn(final int opcode) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     code.putByte(opcode);
     // If needed, update the maximum stack size and number of locals, and stack map frames.
@@ -882,7 +882,7 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitIntInsn(final int opcode, final int operand) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     if (opcode == Opcodes.SIPUSH) {
       code.put12(opcode, operand);
@@ -906,7 +906,7 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitVarInsn(final int opcode, final int var) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     if (var < 4 && opcode != Opcodes.RET) {
       int optimizedOpcode;
@@ -968,7 +968,7 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitTypeInsn(final int opcode, final String type) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     Symbol typeSymbol = symbolTable.addConstantClass(type);
     code.put12(opcode, typeSymbol.index);
@@ -990,7 +990,7 @@ final class MethodWriter extends MethodVisitor {
   @Override
   public void visitFieldInsn(
       final int opcode, final String owner, final String name, final String descriptor) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     Symbol fieldrefSymbol = symbolTable.addConstantFieldref(owner, name, descriptor);
     code.put12(opcode, fieldrefSymbol.index);
@@ -1031,7 +1031,7 @@ final class MethodWriter extends MethodVisitor {
       final String name,
       final String descriptor,
       final boolean isInterface) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     Symbol methodrefSymbol = symbolTable.addConstantMethodref(owner, name, descriptor, isInterface);
     if (opcode == Opcodes.INVOKEINTERFACE) {
@@ -1067,7 +1067,7 @@ final class MethodWriter extends MethodVisitor {
       final String descriptor,
       final Handle bootstrapMethodHandle,
       final Object... bootstrapMethodArguments) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     Symbol invokeDynamicSymbol =
         symbolTable.addConstantInvokeDynamic(
@@ -1092,14 +1092,14 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitJumpInsn(final int opcode, final Label label) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     // Compute the 'base' opcode, i.e. GOTO or JSR if opcode is GOTO_W or JSR_W, otherwise opcode.
     int baseOpcode =
         opcode >= Constants.GOTO_W ? opcode - Constants.WIDE_JUMP_OPCODE_DELTA : opcode;
     boolean nextInsnIsJumpTarget = false;
     if ((label.flags & Label.FLAG_RESOLVED) != 0
-        && label.bytecodeOffset - code.length < Short.MIN_VALUE) {
+        && label.bytecodeOffset - code.size() < Short.MIN_VALUE) {
       // Case of a backward jump with an offset < -32768. In this case we automatically replace GOTO
       // with GOTO_W, JSR with JSR_W and IFxxx <l> with IFNOTxxx <L> GOTO_W <l> L:..., where
       // IFNOTxxx is the "opposite" opcode of IFxxx (e.g. IFNE for IFEQ) and where <L> designates
@@ -1125,18 +1125,18 @@ final class MethodWriter extends MethodVisitor {
         // The instruction after the GOTO_W becomes the target of the IFNOT instruction.
         nextInsnIsJumpTarget = true;
       }
-      label.put(code, code.length - 1, true);
+      label.put(code, code.size() - 1, true);
     } else if (baseOpcode != opcode) {
       // Case of a GOTO_W or JSR_W specified by the user (normally ClassReader when used to remove
       // ASM specific instructions). In this case we keep the original instruction.
       code.putByte(opcode);
-      label.put(code, code.length - 1, true);
+      label.put(code, code.size() - 1, true);
     } else {
       // Case of a jump with an offset >= -32768, or of a jump with an unknown offset. In these
       // cases we store the offset in 2 bytes (which will be increased via a ClassReader ->
       // ClassWriter round trip if it turns out that 2 bytes are not sufficient).
       code.putByte(baseOpcode);
-      label.put(code, code.length - 1, false);
+      label.put(code, code.size() - 1, false);
     }
 
     // If needed, update the maximum stack size and number of locals, and stack map frames.
@@ -1199,7 +1199,7 @@ final class MethodWriter extends MethodVisitor {
   @Override
   public void visitLabel(final Label label) {
     // Resolve the forward references to this label, if any.
-    hasAsmInstructions |= label.resolve(code.data, code.length);
+    hasAsmInstructions |= label.resolve(code.data, code.size());
     // visitLabel starts a new basic block (except for debug only labels), so we need to update the
     // previous and current block references and list of successors.
     if ((label.flags & Label.FLAG_DEBUG_ONLY) != 0) {
@@ -1275,7 +1275,7 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitLdcInsn(final Object value) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     Symbol constantSymbol = symbolTable.addConstant(value);
     int constantIndex = constantSymbol.index;
@@ -1309,7 +1309,7 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitIincInsn(final int var, final int increment) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     if ((var > 255) || (increment > 127) || (increment < -128)) {
       code.putByte(Constants.WIDE).put12(Opcodes.IINC, var).putShort(increment);
@@ -1332,9 +1332,9 @@ final class MethodWriter extends MethodVisitor {
   @Override
   public void visitTableSwitchInsn(
       final int min, final int max, final Label dflt, final Label... labels) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
-    code.putByte(Opcodes.TABLESWITCH).putByteArray(null, 0, (4 - code.length % 4) % 4);
+    code.putByte(Opcodes.TABLESWITCH).putByteArray(null, 0, (4 - code.size() % 4) % 4);
     dflt.put(code, lastBytecodeOffset, true);
     code.putInt(min).putInt(max);
     for (Label label : labels) {
@@ -1346,9 +1346,9 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitLookupSwitchInsn(final Label dflt, final int[] keys, final Label[] labels) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
-    code.putByte(Opcodes.LOOKUPSWITCH).putByteArray(null, 0, (4 - code.length % 4) % 4);
+    code.putByte(Opcodes.LOOKUPSWITCH).putByteArray(null, 0, (4 - code.size() % 4) % 4);
     dflt.put(code, lastBytecodeOffset, true);
     code.putInt(labels.length);
     for (int i = 0; i < labels.length; ++i) {
@@ -1386,7 +1386,7 @@ final class MethodWriter extends MethodVisitor {
 
   @Override
   public void visitMultiANewArrayInsn(final String descriptor, final int numDimensions) {
-    lastBytecodeOffset = code.length;
+    lastBytecodeOffset = code.size();
     // Add the instruction to the bytecode of the method.
     Symbol descSymbol = symbolTable.addConstantClass(descriptor);
     code.put12(Opcodes.MULTIANEWARRAY, descSymbol.index).putByte(numDimensions);
@@ -1632,7 +1632,7 @@ final class MethodWriter extends MethodVisitor {
         // Find the start and end bytecode offsets of this unreachable block.
         Label nextBasicBlock = basicBlock.nextBasicBlock;
         int startOffset = basicBlock.bytecodeOffset;
-        int endOffset = (nextBasicBlock == null ? code.length : nextBasicBlock.bytecodeOffset) - 1;
+        int endOffset = (nextBasicBlock == null ? code.size() : nextBasicBlock.bytecodeOffset) - 1;
         if (endOffset >= startOffset) {
           // Replace its instructions with NOP ... NOP ATHROW.
           for (int i = startOffset; i < endOffset; ++i) {
@@ -1795,7 +1795,7 @@ final class MethodWriter extends MethodVisitor {
     if (compute == COMPUTE_ALL_FRAMES) {
       Label nextBasicBlock = new Label();
       nextBasicBlock.frame = new Frame(nextBasicBlock);
-      nextBasicBlock.resolve(code.data, code.length);
+      nextBasicBlock.resolve(code.data, code.size());
       lastBasicBlock.nextBasicBlock = nextBasicBlock;
       lastBasicBlock = nextBasicBlock;
       currentBasicBlock = null;
@@ -2082,35 +2082,35 @@ final class MethodWriter extends MethodVisitor {
     // 2 bytes each for access_flags, name_index, descriptor_index and attributes_count.
     int size = 8;
     // For ease of reference, we use here the same attribute order as in Section 4.7 of the JVMS.
-    if (code.length > 0) {
-      if (code.length > 65535) {
+    if (code.size() > 0) {
+      if (code.size() > 65535) {
         throw new MethodTooLargeException(
-            symbolTable.getClassName(), name, descriptor, code.length);
+            symbolTable.getClassName(), name, descriptor, code.size());
       }
       symbolTable.addConstantUtf8(Constants.CODE);
       // The Code attribute has 6 header bytes, plus 2, 2, 4 and 2 bytes respectively for max_stack,
       // max_locals, code_length and attributes_count, plus the bytecode and the exception table.
-      size += 16 + code.length + Handler.getExceptionTableSize(firstHandler);
+      size += 16 + code.size() + Handler.getExceptionTableSize(firstHandler);
       if (stackMapTableEntries != null) {
         boolean useStackMapTable = symbolTable.getMajorVersion() >= Opcodes.V1_6;
         symbolTable.addConstantUtf8(useStackMapTable ? Constants.STACK_MAP_TABLE : "StackMap");
         // 6 header bytes and 2 bytes for number_of_entries.
-        size += 8 + stackMapTableEntries.length;
+        size += 8 + stackMapTableEntries.size();
       }
       if (lineNumberTable != null) {
         symbolTable.addConstantUtf8(Constants.LINE_NUMBER_TABLE);
         // 6 header bytes and 2 bytes for line_number_table_length.
-        size += 8 + lineNumberTable.length;
+        size += 8 + lineNumberTable.size();
       }
       if (localVariableTable != null) {
         symbolTable.addConstantUtf8(Constants.LOCAL_VARIABLE_TABLE);
         // 6 header bytes and 2 bytes for local_variable_table_length.
-        size += 8 + localVariableTable.length;
+        size += 8 + localVariableTable.size();
       }
       if (localVariableTypeTable != null) {
         symbolTable.addConstantUtf8(Constants.LOCAL_VARIABLE_TYPE_TABLE);
         // 6 header bytes and 2 bytes for local_variable_type_table_length.
-        size += 8 + localVariableTypeTable.length;
+        size += 8 + localVariableTypeTable.size();
       }
       if (lastCodeRuntimeVisibleTypeAnnotation != null) {
         size +=
@@ -2125,7 +2125,7 @@ final class MethodWriter extends MethodVisitor {
       if (firstCodeAttribute != null) {
         size +=
             firstCodeAttribute.computeAttributesSize(
-                symbolTable, code.data, code.length, maxStack, maxLocals);
+                symbolTable, code.data, code.size(), maxStack, maxLocals);
       }
     }
     if (numberOfExceptions > 0) {
@@ -2159,12 +2159,12 @@ final class MethodWriter extends MethodVisitor {
     }
     if (defaultValue != null) {
       symbolTable.addConstantUtf8(Constants.ANNOTATION_DEFAULT);
-      size += 6 + defaultValue.length;
+      size += 6 + defaultValue.size();
     }
     if (parameters != null) {
       symbolTable.addConstantUtf8(Constants.METHOD_PARAMETERS);
       // 6 header bytes and 1 byte for parameters_count.
-      size += 7 + parameters.length;
+      size += 7 + parameters.size();
     }
     if (firstAttribute != null) {
       size += firstAttribute.computeAttributesSize(symbolTable);
@@ -2189,7 +2189,7 @@ final class MethodWriter extends MethodVisitor {
     }
     // For ease of reference, we use here the same attribute order as in Section 4.7 of the JVMS.
     int attributeCount = 0;
-    if (code.length > 0) {
+    if (code.size() > 0) {
       ++attributeCount;
     }
     if (numberOfExceptions > 0) {
@@ -2233,29 +2233,29 @@ final class MethodWriter extends MethodVisitor {
     }
     // For ease of reference, we use here the same attribute order as in Section 4.7 of the JVMS.
     output.putShort(attributeCount);
-    if (code.length > 0) {
+    if (code.size() > 0) {
       // 2, 2, 4 and 2 bytes respectively for max_stack, max_locals, code_length and
       // attributes_count, plus the bytecode and the exception table.
-      int size = 10 + code.length + Handler.getExceptionTableSize(firstHandler);
+      int size = 10 + code.size() + Handler.getExceptionTableSize(firstHandler);
       int codeAttributeCount = 0;
       if (stackMapTableEntries != null) {
         // 6 header bytes and 2 bytes for number_of_entries.
-        size += 8 + stackMapTableEntries.length;
+        size += 8 + stackMapTableEntries.size();
         ++codeAttributeCount;
       }
       if (lineNumberTable != null) {
         // 6 header bytes and 2 bytes for line_number_table_length.
-        size += 8 + lineNumberTable.length;
+        size += 8 + lineNumberTable.size();
         ++codeAttributeCount;
       }
       if (localVariableTable != null) {
         // 6 header bytes and 2 bytes for local_variable_table_length.
-        size += 8 + localVariableTable.length;
+        size += 8 + localVariableTable.size();
         ++codeAttributeCount;
       }
       if (localVariableTypeTable != null) {
         // 6 header bytes and 2 bytes for local_variable_type_table_length.
-        size += 8 + localVariableTypeTable.length;
+        size += 8 + localVariableTypeTable.size();
         ++codeAttributeCount;
       }
       if (lastCodeRuntimeVisibleTypeAnnotation != null) {
@@ -2273,7 +2273,7 @@ final class MethodWriter extends MethodVisitor {
       if (firstCodeAttribute != null) {
         size +=
             firstCodeAttribute.computeAttributesSize(
-                symbolTable, code.data, code.length, maxStack, maxLocals);
+                symbolTable, code.data, code.size(), maxStack, maxLocals);
         codeAttributeCount += firstCodeAttribute.getAttributeCount();
       }
       output
@@ -2281,8 +2281,8 @@ final class MethodWriter extends MethodVisitor {
           .putInt(size)
           .putShort(maxStack)
           .putShort(maxLocals)
-          .putInt(code.length)
-          .putByteArray(code.data, 0, code.length);
+          .putInt(code.size())
+          .putByteArray(code.data, 0, code.size());
       Handler.putExceptionTable(firstHandler, output);
       output.putShort(codeAttributeCount);
       if (stackMapTableEntries != null) {
@@ -2291,30 +2291,30 @@ final class MethodWriter extends MethodVisitor {
             .putShort(
                 symbolTable.addConstantUtf8(
                     useStackMapTable ? Constants.STACK_MAP_TABLE : "StackMap"))
-            .putInt(2 + stackMapTableEntries.length)
+            .putInt(2 + stackMapTableEntries.size())
             .putShort(stackMapTableNumberOfEntries)
-            .putByteArray(stackMapTableEntries.data, 0, stackMapTableEntries.length);
+            .putByteArray(stackMapTableEntries.data, 0, stackMapTableEntries.size());
       }
       if (lineNumberTable != null) {
         output
             .putShort(symbolTable.addConstantUtf8(Constants.LINE_NUMBER_TABLE))
-            .putInt(2 + lineNumberTable.length)
+            .putInt(2 + lineNumberTable.size())
             .putShort(lineNumberTableLength)
-            .putByteArray(lineNumberTable.data, 0, lineNumberTable.length);
+            .putByteArray(lineNumberTable.data, 0, lineNumberTable.size());
       }
       if (localVariableTable != null) {
         output
             .putShort(symbolTable.addConstantUtf8(Constants.LOCAL_VARIABLE_TABLE))
-            .putInt(2 + localVariableTable.length)
+            .putInt(2 + localVariableTable.size())
             .putShort(localVariableTableLength)
-            .putByteArray(localVariableTable.data, 0, localVariableTable.length);
+            .putByteArray(localVariableTable.data, 0, localVariableTable.size());
       }
       if (localVariableTypeTable != null) {
         output
             .putShort(symbolTable.addConstantUtf8(Constants.LOCAL_VARIABLE_TYPE_TABLE))
-            .putInt(2 + localVariableTypeTable.length)
+            .putInt(2 + localVariableTypeTable.size())
             .putShort(localVariableTypeTableLength)
-            .putByteArray(localVariableTypeTable.data, 0, localVariableTypeTable.length);
+            .putByteArray(localVariableTypeTable.data, 0, localVariableTypeTable.size());
       }
       if (lastCodeRuntimeVisibleTypeAnnotation != null) {
         lastCodeRuntimeVisibleTypeAnnotation.putAnnotations(
@@ -2326,7 +2326,7 @@ final class MethodWriter extends MethodVisitor {
       }
       if (firstCodeAttribute != null) {
         firstCodeAttribute.putAttributes(
-            symbolTable, code.data, code.length, maxStack, maxLocals, output);
+            symbolTable, code.data, code.size(), maxStack, maxLocals, output);
       }
     }
     if (numberOfExceptions > 0) {
@@ -2367,15 +2367,15 @@ final class MethodWriter extends MethodVisitor {
     if (defaultValue != null) {
       output
           .putShort(symbolTable.addConstantUtf8(Constants.ANNOTATION_DEFAULT))
-          .putInt(defaultValue.length)
-          .putByteArray(defaultValue.data, 0, defaultValue.length);
+          .putInt(defaultValue.size())
+          .putByteArray(defaultValue.data, 0, defaultValue.size());
     }
     if (parameters != null) {
       output
           .putShort(symbolTable.addConstantUtf8(Constants.METHOD_PARAMETERS))
-          .putInt(1 + parameters.length)
+          .putInt(1 + parameters.size())
           .putByte(parametersCount)
-          .putByteArray(parameters.data, 0, parameters.length);
+          .putByteArray(parameters.data, 0, parameters.size());
     }
     if (firstAttribute != null) {
       firstAttribute.putAttributes(symbolTable, output);
