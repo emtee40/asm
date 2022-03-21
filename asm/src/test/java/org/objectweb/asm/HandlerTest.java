@@ -138,7 +138,7 @@ class HandlerTest {
 
     Handler.putExceptionTable(handlerList, byteVector);
 
-    assertEquals(18, byteVector.length);
+    assertEquals(18, byteVector.size());
   }
 
   private static Handler newHandler(final int startPc, final int endPc) {

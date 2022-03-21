@@ -335,7 +335,7 @@ final class SymbolTable {
    * @return the length in bytes of this symbol table's constant_pool array.
    */
   int getConstantPoolLength() {
-    return constantPool.length;
+    return constantPool.size();
   }
 
   /**
@@ -345,7 +345,7 @@ final class SymbolTable {
    * @param output where the JVMS ClassFile's constant_pool array must be put.
    */
   void putConstantPool(final ByteVector output) {
-    output.putShort(constantPoolCount).putByteArray(constantPool.data, 0, constantPool.length);
+    output.putShort(constantPoolCount).putByteArray(constantPool.data, 0, constantPool.size());
   }
 
   /**
@@ -357,7 +357,7 @@ final class SymbolTable {
   int computeBootstrapMethodsSize() {
     if (bootstrapMethods != null) {
       addConstantUtf8(Constants.BOOTSTRAP_METHODS);
-      return 8 + bootstrapMethods.length;
+      return 8 + bootstrapMethods.size();
     } else {
       return 0;
     }
@@ -373,9 +373,9 @@ final class SymbolTable {
     if (bootstrapMethods != null) {
       output
           .putShort(addConstantUtf8(Constants.BOOTSTRAP_METHODS))
-          .putInt(bootstrapMethods.length + 2)
+          .putInt(bootstrapMethods.size() + 2)
           .putShort(bootstrapMethodCount)
-          .putByteArray(bootstrapMethods.data, 0, bootstrapMethods.length);
+          .putByteArray(bootstrapMethods.data, 0, bootstrapMethods.size());
     }
   }
 
@@ -1055,7 +1055,7 @@ final class SymbolTable {
     // Write the bootstrap method in the BootstrapMethods table. This is necessary to be able to
     // compare it with existing ones, and will be reverted below if there is already a similar
     // bootstrap method.
-    int bootstrapMethodOffset = bootstrapMethodsAttribute.length;
+    int bootstrapMethodOffset = bootstrapMethodsAttribute.size();
     bootstrapMethodsAttribute.putShort(
         addConstantMethodHandle(
                 bootstrapMethodHandle.getTag(),
@@ -1071,7 +1071,7 @@ final class SymbolTable {
     }
 
     // Compute the length and the hash code of the bootstrap method.
-    int bootstrapMethodlength = bootstrapMethodsAttribute.length - bootstrapMethodOffset;
+    int bootstrapMethodlength = bootstrapMethodsAttribute.size() - bootstrapMethodOffset;
     int hashCode = bootstrapMethodHandle.hashCode();
     for (Object bootstrapMethodArgument : bootstrapMethodArguments) {
       hashCode ^= bootstrapMethodArgument.hashCode();

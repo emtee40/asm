@@ -175,8 +175,8 @@ class ByteVectorTest {
   }
 
   private static byte[] toArray(final ByteVector byteVector) {
-    byte[] result = new byte[byteVector.length];
-    System.arraycopy(byteVector.data, 0, result, 0, byteVector.length);
+    byte[] result = new byte[byteVector.size()];
+    System.arraycopy(byteVector.data, 0, result, 0, byteVector.size());
     return result;
   }
 }

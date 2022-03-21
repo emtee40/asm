@@ -149,7 +149,7 @@ public final class TypePath {
         throw new IllegalArgumentException();
       }
     }
-    output.data[0] = (byte) (output.length / 2);
+    output.data[0] = (byte) (output.size() / 2);
     return new TypePath(output.data, 0);
   }
 

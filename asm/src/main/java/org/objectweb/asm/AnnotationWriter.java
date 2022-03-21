@@ -117,7 +117,7 @@ final class AnnotationWriter extends AnnotationVisitor {
     this.useNamedValues = useNamedValues;
     this.annotation = annotation;
     // By hypothesis, num_element_value_pairs is stored in the last unsigned short of 'annotation'.
-    this.numElementValuePairsOffset = annotation.length == 0 ? -1 : annotation.length - 2;
+    this.numElementValuePairsOffset = annotation.size() == 0 ? -1 : annotation.size() - 2;
     this.previousAnnotation = previousAnnotation;
     if (previousAnnotation != null) {
       previousAnnotation.nextAnnotation = this;
@@ -337,7 +337,7 @@ final class AnnotationWriter extends AnnotationVisitor {
     int attributeSize = 8;
     AnnotationWriter annotationWriter = this;
     while (annotationWriter != null) {
-      attributeSize += annotationWriter.annotation.length;
+      attributeSize += annotationWriter.annotation.size();
       annotationWriter = annotationWriter.previousAnnotation;
     }
     return attributeSize;
@@ -410,7 +410,7 @@ final class AnnotationWriter extends AnnotationVisitor {
     while (annotationWriter != null) {
       // In case the user forgot to call visitEnd().
       annotationWriter.visitEnd();
-      attributeLength += annotationWriter.annotation.length;
+      attributeLength += annotationWriter.annotation.size();
       numAnnotations++;
       firstAnnotation = annotationWriter;
       annotationWriter = annotationWriter.previousAnnotation;
@@ -420,7 +420,7 @@ final class AnnotationWriter extends AnnotationVisitor {
     output.putShort(numAnnotations);
     annotationWriter = firstAnnotation;
     while (annotationWriter != null) {
-      output.putByteArray(annotationWriter.annotation.data, 0, annotationWriter.annotation.length);
+      output.putByteArray(annotationWriter.annotation.data, 0, annotationWriter.annotation.size());
       annotationWriter = annotationWriter.nextAnnotation;
     }
   }
@@ -545,7 +545,7 @@ final class AnnotationWriter extends AnnotationVisitor {
       annotationWriter = firstAnnotation;
       while (annotationWriter != null) {
         output.putByteArray(
-            annotationWriter.annotation.data, 0, annotationWriter.annotation.length);
+            annotationWriter.annotation.data, 0, annotationWriter.annotation.size());
         annotationWriter = annotationWriter.nextAnnotation;
       }
     }

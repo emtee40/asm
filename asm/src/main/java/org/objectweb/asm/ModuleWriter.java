@@ -196,11 +196,11 @@ final class ModuleWriter extends ModuleVisitor {
     symbolTable.addConstantUtf8(Constants.MODULE);
     // 6 attribute header bytes, 6 bytes for name, flags and version, and 5 * 2 bytes for counts.
     int size =
-        22 + requires.length + exports.length + opens.length + usesIndex.length + provides.length;
+        22 + requires.size() + exports.size() + opens.size() + usesIndex.size() + provides.size();
     if (packageCount > 0) {
       symbolTable.addConstantUtf8(Constants.MODULE_PACKAGES);
       // 6 attribute header bytes, and 2 bytes for package_count.
-      size += 8 + packageIndex.length;
+      size += 8 + packageIndex.size();
     }
     if (mainClassIndex > 0) {
       symbolTable.addConstantUtf8(Constants.MODULE_MAIN_CLASS);
@@ -219,7 +219,7 @@ final class ModuleWriter extends ModuleVisitor {
   void putAttributes(final ByteVector output) {
     // 6 bytes for name, flags and version, and 5 * 2 bytes for counts.
     int moduleAttributeLength =
-        16 + requires.length + exports.length + opens.length + usesIndex.length + provides.length;
+        16 + requires.size() + exports.size() + opens.size() + usesIndex.size() + provides.size();
     output
         .putShort(symbolTable.addConstantUtf8(Constants.MODULE))
         .putInt(moduleAttributeLength)
@@ -227,21 +227,21 @@ final class ModuleWriter extends ModuleVisitor {
         .putShort(moduleFlags)
         .putShort(moduleVersionIndex)
         .putShort(requiresCount)
-        .putByteArray(requires.data, 0, requires.length)
+        .putByteArray(requires.data, 0, requires.size())
         .putShort(exportsCount)
-        .putByteArray(exports.data, 0, exports.length)
+        .putByteArray(exports.data, 0, exports.size())
         .putShort(opensCount)
-        .putByteArray(opens.data, 0, opens.length)
+        .putByteArray(opens.data, 0, opens.size())
         .putShort(usesCount)
-        .putByteArray(usesIndex.data, 0, usesIndex.length)
+        .putByteArray(usesIndex.data, 0, usesIndex.size())
         .putShort(providesCount)
-        .putByteArray(provides.data, 0, provides.length);
+        .putByteArray(provides.data, 0, provides.size());
     if (packageCount > 0) {
       output
           .putShort(symbolTable.addConstantUtf8(Constants.MODULE_PACKAGES))
-          .putInt(2 + packageIndex.length)
+          .putInt(2 + packageIndex.size())
           .putShort(packageCount)
-          .putByteArray(packageIndex.data, 0, packageIndex.length);
+          .putByteArray(packageIndex.data, 0, packageIndex.size());
     }
     if (mainClassIndex > 0) {
       output
