@@ -41,6 +41,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.test.AsmTest;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodNode;
 
 /**
@@ -1128,6 +1129,169 @@ class AnalyzerTest extends AsmTest {
     assertEquals(methodNode.maxStack, methodMaxs.maxStack);
     assertEquals(methodNode.maxLocals, methodMaxs.maxLocals);
     assertDoesNotThrow(() -> MethodNodeBuilder.buildClassWithMethod(methodNode).newInstance());
+  }
+
+  @Test
+  void testAnalyzeFromFrames_invalidJsr() {
+    MethodNode methodNode = new MethodNodeBuilder(4, 4).jsr(label0).label(label0).vreturn().build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(message.contains("Error at instruction 0: JSR instructions are unsupported"));
+  }
+
+  @Test
+  void testAnalyzeFromFrames_missingFrameAtJumpTarget() {
+    Label ifLabel = new Label();
+    MethodNode methodNode =
+        new MethodNodeBuilder()
+            .iconst_0()
+            .ifne(ifLabel)
+            .iconst_0()
+            .label(ifLabel)
+            .vreturn()
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(
+        message.contains("Error at instruction 1: Expected stack map frame at instruction 3"));
+  }
+
+  @Test
+  void testAnalyzeFromFrames_missingFrameAfterGoto() {
+    MethodNode methodNode =
+        new MethodNodeBuilder().nop().go(label0).nop().label(label0).vreturn().build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(
+        message.contains("Error at instruction 1: Expected stack map frame at instruction 2"));
+  }
+
+  @Test
+  void testAnalyzeFromFrames_illegalFrameType() {
+    MethodNode methodNode =
+        new MethodNodeBuilder()
+            .nop()
+            .go(label0)
+            .frame(123456, null, null)
+            .nop()
+            .label(label0)
+            .vreturn()
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(message.contains("Error at instruction 2: Illegal frame type 123456"));
+  }
+
+  @Test
+  void testAnalyzeFromFrames_invalidAppendFrame() {
+    MethodNode methodNode =
+        new MethodNodeBuilder(/* maxStack = */ 0, /* maxLocals = */ 1)
+            .nop()
+            .frame(Opcodes.F_APPEND, new Object[] {Opcodes.INTEGER}, null)
+            .vreturn()
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(
+        message.contains("Error at instruction 1: Cannot append more locals than maxLocals"));
+  }
+
+  @Test
+  void testAnalyzeFromFrames_invalidChopFrame() {
+    MethodNode methodNode =
+        new MethodNodeBuilder(/* maxStack = */ 0, /* maxLocals = */ 1)
+            .nop()
+            .frame(Opcodes.F_CHOP, new Object[] {null, null}, null)
+            .vreturn()
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(message.contains("Error at instruction 1: Cannot chop more locals than defined"));
+  }
+
+  @Test
+  void testAnalyzeFromFrames_illegalStackMapFrameValue() {
+    MethodNode methodNode =
+        new MethodNodeBuilder(/* maxStack = */ 0, /* maxLocals = */ 2)
+            .nop()
+            .frame(Opcodes.F_APPEND, new Object[] {new Object()}, null)
+            .vreturn()
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(
+        message.contains("Error at instruction 1: Illegal stack map frame value java.lang.Object"));
+  }
+
+  @Test
+  void testAnalyzeFromFrames_illegalLabelNodeStackMapFrameValue() {
+    MethodNode methodNode =
+        new MethodNodeBuilder(/* maxStack = */ 0, /* maxLocals = */ 2)
+            .nop()
+            .frame(Opcodes.F_APPEND, new Object[] {new LabelNode(label0)}, null)
+            .label(label0)
+            .vreturn()
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(
+        message.contains("Error at instruction 1: LabelNode does not designate a NEW instruction"));
+  }
+
+  @Test
+  void testAnalyzeFromFrames_frameAtJumpTargetHasIncompatibleStackHeight() {
+    MethodNode methodNode =
+        new MethodNodeBuilder()
+            .iconst_0()
+            .ifne(label0)
+            .iconst_0()
+            .label(label0)
+            .frame(Opcodes.F_SAME1, null, new Object[] {Opcodes.INTEGER})
+            .vreturn()
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(
+        message.contains(
+            "Error at instruction 1: Stack map frame incompatible with frame at instruction 3 (incompatible stack heights)"));
+  }
+
+  @Test
+  void testAnalyzeFromFrames_frameAtJumpTargetHasIncompatibleTypes() {
+    MethodNode methodNode =
+        new MethodNodeBuilder()
+            .iconst_0()
+            .ifne(label0)
+            .iconst_0()
+            .label(label0)
+            .frame(Opcodes.F_NEW, new Object[] {Opcodes.INTEGER}, null)
+            .vreturn()
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyzeFromFrames(CLASS_NAME, methodNode);
+
+    String message = assertThrows(AnalyzerException.class, analyze).getMessage();
+    assertTrue(
+        message.contains(
+            "Error at instruction 1: Stack map frame incompatible with frame at instruction 3 (incompatible types at index 0: INT and REFERENCE)"));
   }
 
   private static Analyzer<MockValue> newAnalyzer() {

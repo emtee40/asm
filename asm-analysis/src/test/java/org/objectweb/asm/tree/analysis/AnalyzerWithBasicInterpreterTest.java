@@ -124,12 +124,7 @@ class AnalyzerWithBasicInterpreterTest extends AsmTest {
       final PrecompiledClass classParameter, final Api apiParameter) throws AnalyzerException {
     ClassNode classNode = new ClassNode();
     new ClassReader(classParameter.getBytes()).accept(classNode, 0);
-    ArrayList<MethodMaxs> methodMaxs = new ArrayList<>();
-    for (MethodNode methodNode : classNode.methods) {
-      methodMaxs.add(new MethodMaxs(methodNode.maxStack, methodNode.maxLocals));
-      methodNode.maxLocals = 0;
-      methodNode.maxStack = 0;
-    }
+    ArrayList<MethodMaxs> methodMaxs = MethodMaxs.getAndClear(classNode);
     Analyzer<BasicValue> analyzer = new Analyzer<BasicValue>(new BasicInterpreter());
 
     ArrayList<MethodMaxs> analyzedMethodMaxs = new ArrayList<>();
@@ -218,17 +213,6 @@ class AnalyzerWithBasicInterpreterTest extends AsmTest {
     public Frame<BasicValue> init(final Frame<? extends BasicValue> frame) {
       assertTrue(frame instanceof CustomFrame);
       return super.init(frame);
-    }
-  }
-
-  private static class MethodMaxs {
-
-    public final int maxStack;
-    public final int maxLocals;
-
-    public MethodMaxs(final int maxStack, final int maxLocals) {
-      this.maxStack = maxStack;
-      this.maxLocals = maxLocals;
     }
   }
 }

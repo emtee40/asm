@@ -29,14 +29,18 @@ package org.objectweb.asm.tree.analysis;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
+import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.test.AsmTest;
 import org.objectweb.asm.tree.ClassNode;
@@ -237,7 +241,88 @@ class AnalyzerWithBasicVerifierTest extends AsmTest {
     }
   }
 
+  /**
+   * Tests that the precompiled classes can be successfully analyzed from their existing stack map
+   * frames with a BasicVerifier.
+   *
+   * @throws AnalyzerException if the test class can't be analyzed.
+   */
+  @ParameterizedTest
+  @MethodSource(ALL_CLASSES_AND_LATEST_API)
+  void testAnalyzeFromFrames_basicVerifier(
+      final PrecompiledClass classParameter, final Api apiParameter) throws AnalyzerException {
+    assumeFalse(hasJsrOrRetInstructions(classParameter));
+    ClassNode classNode = computeFrames(classParameter);
+    Analyzer<BasicValue> analyzer = newAnalyzer();
+
+    ArrayList<Frame<? extends BasicValue>[]> methodFrames = new ArrayList<>();
+    for (MethodNode methodNode : classNode.methods) {
+      Frame<? extends BasicValue>[] result = analyzer.analyzeFromFrames(classNode.name, methodNode);
+      methodFrames.add(result);
+    }
+
+    for (int i = 0; i < classNode.methods.size(); ++i) {
+      Frame<? extends BasicValue>[] frames = methodFrames.get(i);
+      for (int j = 0; j < lastJvmInsnIndex(classNode.methods.get(i)); ++j) {
+        assertNotNull(frames[j]);
+      }
+    }
+  }
+
+  /**
+   * Tests that the precompiled classes can be successfully analyzed from their existing stack map
+   * frames with a BasicVerifier, even if the method node's max locals and max stack size are not
+   * set.
+   *
+   * @throws AnalyzerException if the test class can't be analyzed.
+   */
+  @ParameterizedTest
+  @MethodSource(ALL_CLASSES_AND_LATEST_API)
+  void testAnalyzeAndComputeMaxsFromFrames_basicVerifier(
+      final PrecompiledClass classParameter, final Api apiParameter) throws AnalyzerException {
+    assumeFalse(hasJsrOrRetInstructions(classParameter));
+    ClassNode classNode = computeFrames(classParameter);
+    ArrayList<MethodMaxs> methodMaxs = MethodMaxs.getAndClear(classNode);
+    Analyzer<BasicValue> analyzer = newAnalyzer();
+
+    ArrayList<MethodMaxs> analyzedMethodMaxs = new ArrayList<>();
+    for (MethodNode methodNode : classNode.methods) {
+      analyzer.analyzeAndComputeMaxsFromFrames(classNode.name, methodNode);
+      analyzedMethodMaxs.add(new MethodMaxs(methodNode.maxStack, methodNode.maxLocals));
+    }
+
+    for (int i = 0; i < analyzedMethodMaxs.size(); ++i) {
+      assertTrue(analyzedMethodMaxs.get(i).maxLocals >= methodMaxs.get(i).maxLocals);
+      assertTrue(analyzedMethodMaxs.get(i).maxStack >= methodMaxs.get(i).maxStack);
+    }
+  }
+
+  private static boolean hasJsrOrRetInstructions(final PrecompiledClass classParameter) {
+    return classParameter == PrecompiledClass.JDK3_ALL_INSTRUCTIONS
+        || classParameter == PrecompiledClass.JDK3_LARGE_METHOD;
+  }
+
+  private static ClassNode computeFrames(final PrecompiledClass classParameter) {
+    byte[] classFile = classParameter.getBytes();
+    ClassReader classReader = new ClassReader(classFile);
+    ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+    classReader.accept(classWriter, 0);
+    classFile = classWriter.toByteArray();
+    ClassNode classNode = new ClassNode();
+    new ClassReader(classFile).accept(classNode, 0);
+    return classNode;
+  }
+
   private static Analyzer<BasicValue> newAnalyzer() {
     return new Analyzer<>(new BasicVerifier());
+  }
+
+  private static int lastJvmInsnIndex(final MethodNode method) {
+    for (int i = method.instructions.size() - 1; i >= 0; --i) {
+      if (method.instructions.get(i).getOpcode() >= 0) {
+        return i;
+      }
+    }
+    return -1;
   }
 }

@@ -686,6 +686,28 @@ public class Frame<V extends Value> {
   }
 
   /**
+   * Checks that merging the given frame into this frame would not produce any change, i.e. that the
+   * types in this frame are super types of the corresponding types in the given frame.
+   *
+   * @param frame a frame. This frame is left unchanged by this method.
+   * @param interpreter the interpreter used to merge values.
+   * @return an error message if the frames have incompatible sizes, or if a type in this frame is
+   *     not a super type of the corresponding type in 'frame'. Returns {@literal null} otherwise.
+   */
+  String checkMerge(final Frame<? extends V> frame, final Interpreter<V> interpreter) {
+    if (numStack != frame.numStack) {
+      return "incompatible stack heights";
+    }
+    for (int i = 0; i < numLocals + numStack; ++i) {
+      V v = interpreter.merge(values[i], frame.values[i]);
+      if (!v.equals(values[i])) {
+        return "incompatible types at index " + i + ": " + values[i] + " and " + frame.values[i];
+      }
+    }
+    return null;
+  }
+
+  /**
    * Merges the given frame into this frame.
    *
    * @param frame a frame. This frame is left unchanged by this method.

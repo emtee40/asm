@@ -27,11 +27,13 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 package org.objectweb.asm.tree.analysis;
 
+import java.util.Arrays;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.test.ClassFile;
+import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.tree.MethodNode;
 
 /**
@@ -201,6 +203,15 @@ final class MethodNodeBuilder {
       final Label end,
       final int index) {
     methodNode.visitLocalVariable(name, descriptor, signature, start, end, index);
+    return this;
+  }
+
+  MethodNodeBuilder frame(final int type, final Object[] local, final Object[] stack) {
+    FrameNode frameNode = new FrameNode(Opcodes.F_NEW, 0, null, 0, null);
+    frameNode.type = type;
+    frameNode.local = local == null ? null : Arrays.asList(local);
+    frameNode.stack = stack == null ? null : Arrays.asList(stack);
+    methodNode.instructions.add(frameNode);
     return this;
   }
 
