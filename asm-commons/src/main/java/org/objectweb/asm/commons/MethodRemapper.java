@@ -33,7 +33,6 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.TypePath;
 
 /**
@@ -42,14 +41,6 @@ import org.objectweb.asm.TypePath;
  * @author Eugene Kuleshov
  */
 public class MethodRemapper extends MethodVisitor {
-  // The method signature of LambdaMetafactory.metafactory
-  private static final String LAMBDA_FACTORY_METAFACTORY =
-      "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;"
-          + "Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;";
-  // The method signature of LambdaMetafactory.altMetafactory
-  private static final String LAMBDA_FACTORY_ALTMETAFACTORY =
-      "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;[Ljava/lang/Object;"
-          + ")Ljava/lang/invoke/CallSite;";
 
   /** The remapper used to remap the types in the visited field. */
   protected final Remapper remapper;
@@ -189,35 +180,9 @@ public class MethodRemapper extends MethodVisitor {
       remappedBootstrapMethodArguments[i] = remapper.mapValue(bootstrapMethodArguments[i]);
     }
 
-    if ("java/lang/invoke/LambdaMetafactory".equals(bootstrapMethodHandle.getOwner()) && bootstrapMethodHandle.getTag() == Opcodes.H_INVOKESTATIC) {
-      // this is a lambda creation command
-      boolean isLambdaCreation = false;
-      String lambdaClassName = null;
-      String lambdaOriginFunctionName = null;
-      String lambdaSamDescriptor = null;
-
-      // note: **if** is reserved for future JDK changes.
-      if (("metafactory".equals(bootstrapMethodHandle.getName()) && LAMBDA_FACTORY_METAFACTORY.equals(bootstrapMethodHandle.getDesc()))
-          || ("altMetafactory".equals(bootstrapMethodHandle.getName()) && LAMBDA_FACTORY_ALTMETAFACTORY.equals(bootstrapMethodHandle.getDesc()))
-      ) {
-        isLambdaCreation = true;
-        lambdaClassName = Type.getReturnType(descriptor).getInternalName(); // the return type is the lambda type
-        lambdaOriginFunctionName = name;  // SAM name
-        lambdaSamDescriptor = bootstrapMethodArguments[0].toString(); // SAM descriptor
-      }
-
-      if (isLambdaCreation) {
-        super.visitInvokeDynamicInsn(
-            remapper.mapMethodName(lambdaClassName, lambdaOriginFunctionName, lambdaSamDescriptor),
-            remapper.mapMethodDesc(descriptor),
-            (Handle) remapper.mapValue(bootstrapMethodHandle),
-            remappedBootstrapMethodArguments);
-        return;
-      }
-    }
-
     super.visitInvokeDynamicInsn(
-        remapper.mapInvokeDynamicMethodName(name, descriptor),
+        remapper.mapInvokeDynamicMethodName(
+            name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments),
         remapper.mapMethodDesc(descriptor),
         (Handle) remapper.mapValue(bootstrapMethodHandle),
         remappedBootstrapMethodArguments);
