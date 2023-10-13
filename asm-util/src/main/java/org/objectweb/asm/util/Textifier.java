@@ -437,10 +437,10 @@ public class Textifier extends Printer {
     stringBuilder.append(name);
     appendDescriptor(METHOD_DESCRIPTOR, descriptor);
     if (exceptions != null && exceptions.length > 0) {
-      stringBuilder.append(" throws ");
+      stringBuilder.append(" throws");
       for (String exception : exceptions) {
-        appendDescriptor(INTERNAL_NAME, exception);
         stringBuilder.append(' ');
+        appendDescriptor(INTERNAL_NAME, exception);
       }
     }
 
