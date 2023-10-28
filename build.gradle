@@ -384,7 +384,7 @@ configure([rootProject] + subprojects.findAll { it.provides }) {
         pom {
           name = artifactId
           description = project.description
-          packaging 'jar'
+          packaging = isRoot ? 'pom' : 'jar'
           inceptionYear = '2000'
           licenses {
             license {
