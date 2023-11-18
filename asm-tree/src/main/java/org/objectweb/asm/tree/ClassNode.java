@@ -90,8 +90,8 @@ public class ClassNode extends ClassVisitor {
 
   /**
    * The internal name of the enclosing class of this class (see {@link
-   * org.objectweb.asm.Type#getInternalName()}). Must be {@literal null} if this class has no
-   * enclosing class, or if it is a local or anonymous class.
+   * org.objectweb.asm.Type#getInternalName()}). Must be {@literal null} if this class is not a
+   * local or anonymous class.
    */
   public String outerClass;
 
