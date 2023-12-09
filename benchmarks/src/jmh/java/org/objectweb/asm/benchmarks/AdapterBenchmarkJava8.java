@@ -175,42 +175,42 @@ public class AdapterBenchmarkJava8 extends AbstractBenchmark {
   @Benchmark
   public void readAndWrite_asm5_0(final Blackhole blackhole) {
     for (byte[] classFile : java8classFiles) {
-      blackhole.consume(asm5dot0.readAndWrite(classFile, /* computeMaxs = */ false));
+      blackhole.consume(asm5dot0.readAndWrite(classFile, /* computeMaxs= */ false));
     }
   }
 
   @Benchmark
   public void readAndWrite_asm6_0(final Blackhole blackhole) {
     for (byte[] classFile : java8classFiles) {
-      blackhole.consume(asm6dot0.readAndWrite(classFile, /* computeMaxs = */ false));
+      blackhole.consume(asm6dot0.readAndWrite(classFile, /* computeMaxs= */ false));
     }
   }
 
   @Benchmark
   public void readAndWrite_asm7_0(final Blackhole blackhole) {
     for (byte[] classFile : java8classFiles) {
-      blackhole.consume(asm7dot0.readAndWrite(classFile, /* computeMaxs = */ false));
+      blackhole.consume(asm7dot0.readAndWrite(classFile, /* computeMaxs= */ false));
     }
   }
 
   @Benchmark
   public void readAndWrite_asm8_0(final Blackhole blackhole) {
     for (byte[] classFile : java8classFiles) {
-      blackhole.consume(asm8dot0.readAndWrite(classFile, /* computeMaxs = */ false));
+      blackhole.consume(asm8dot0.readAndWrite(classFile, /* computeMaxs= */ false));
     }
   }
 
   @Benchmark
   public void readAndWrite_asm9_0(final Blackhole blackhole) {
     for (byte[] classFile : java8classFiles) {
-      blackhole.consume(asm9dot0.readAndWrite(classFile, /* computeMaxs = */ false));
+      blackhole.consume(asm9dot0.readAndWrite(classFile, /* computeMaxs= */ false));
     }
   }
 
   @Benchmark
   public void readAndWrite_asmCurrent(final Blackhole blackhole) {
     for (byte[] classFile : java8classFiles) {
-      blackhole.consume(asmCurrent.readAndWrite(classFile, /* computeMaxs = */ false));
+      blackhole.consume(asmCurrent.readAndWrite(classFile, /* computeMaxs= */ false));
     }
   }
 

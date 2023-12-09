@@ -75,7 +75,7 @@ public class MethodRemapper extends MethodVisitor {
     AnnotationVisitor annotationVisitor = super.visitAnnotationDefault();
     return annotationVisitor == null
         ? annotationVisitor
-        : createAnnotationRemapper(/* descriptor = */ null, annotationVisitor);
+        : createAnnotationRemapper(/* descriptor= */ null, annotationVisitor);
   }
 
   @Override
@@ -271,7 +271,7 @@ public class MethodRemapper extends MethodVisitor {
    */
   @Deprecated
   protected AnnotationVisitor createAnnotationRemapper(final AnnotationVisitor annotationVisitor) {
-    return new AnnotationRemapper(api, /* descriptor = */ null, annotationVisitor, remapper);
+    return new AnnotationRemapper(api, /* descriptor= */ null, annotationVisitor, remapper);
   }
 
   /**

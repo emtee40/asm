@@ -414,7 +414,7 @@ class CheckClassAdapterTest extends AsmTest implements Opcodes {
 
   @Test
   void testVisitMethod_noDataFlowCheckIfDisabled() {
-    CheckClassAdapter checkClassAdapter = new CheckClassAdapter(null, /* checkDataFlow = */ false);
+    CheckClassAdapter checkClassAdapter = new CheckClassAdapter(null, /* checkDataFlow= */ false);
     checkClassAdapter.visit(V1_1, ACC_PUBLIC, "C", null, "java/lang/Object", null);
     MethodVisitor methodVisitor = checkClassAdapter.visitMethod(ACC_PUBLIC, "m", "()V", null, null);
     methodVisitor.visitCode();
@@ -547,8 +547,7 @@ class CheckClassAdapterTest extends AsmTest implements Opcodes {
     ClassReader classReader = new ClassReader(classParameter.getBytes());
     StringWriter logger = new StringWriter();
 
-    CheckClassAdapter.verify(
-        classReader, /* printResults = */ false, new PrintWriter(logger, true));
+    CheckClassAdapter.verify(classReader, /* printResults= */ false, new PrintWriter(logger, true));
 
     assertEquals("", logger.toString());
   }

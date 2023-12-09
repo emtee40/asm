@@ -577,7 +577,7 @@ class AdviceAdapterTest extends AsmTest {
             .label(label1)
             .iconst_0()
             .iconst_0()
-            .switchto(label3, label3, /*useTableSwitch=*/ parameter.equals("tableswitch"))
+            .switchto(label3, label3, /* useTableSwitch= */ parameter.equals("tableswitch"))
             .label(label2)
             // After instrumentation, expect an after advice here, before instruction #7.
             .athrow()

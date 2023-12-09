@@ -135,7 +135,7 @@ class CheckFrameAnalyzerTest extends AsmTest {
   @Test
   void testAnalyze_invalidAppendFrame() {
     MethodNode methodNode =
-        new MethodNodeBuilder(/* maxStack = */ 0, /* maxLocals = */ 1)
+        new MethodNodeBuilder(/* maxStack= */ 0, /* maxLocals= */ 1)
             .nop()
             .frame(Opcodes.F_APPEND, new Object[] {Opcodes.INTEGER}, null)
             .vreturn()
@@ -151,7 +151,7 @@ class CheckFrameAnalyzerTest extends AsmTest {
   @Test
   void testAnalyze_invalidChopFrame() {
     MethodNode methodNode =
-        new MethodNodeBuilder(/* maxStack = */ 0, /* maxLocals = */ 1)
+        new MethodNodeBuilder(/* maxStack= */ 0, /* maxLocals= */ 1)
             .nop()
             .frame(Opcodes.F_CHOP, new Object[] {null, null}, null)
             .vreturn()
@@ -166,7 +166,7 @@ class CheckFrameAnalyzerTest extends AsmTest {
   @Test
   void testAnalyze_illegalStackMapFrameValue() {
     MethodNode methodNode =
-        new MethodNodeBuilder(/* maxStack = */ 0, /* maxLocals = */ 2)
+        new MethodNodeBuilder(/* maxStack= */ 0, /* maxLocals= */ 2)
             .nop()
             .frame(Opcodes.F_APPEND, new Object[] {new Object()}, null)
             .vreturn()
@@ -182,7 +182,7 @@ class CheckFrameAnalyzerTest extends AsmTest {
   @Test
   void testAnalyze_illegalLabelNodeStackMapFrameValue() {
     MethodNode methodNode =
-        new MethodNodeBuilder(/* maxStack = */ 0, /* maxLocals = */ 2)
+        new MethodNodeBuilder(/* maxStack= */ 0, /* maxLocals= */ 2)
             .nop()
             .frame(Opcodes.F_APPEND, new Object[] {new LabelNode(label0)}, null)
             .label(label0)

@@ -44,14 +44,14 @@ class CheckModuleAdapterTest {
 
   @Test
   void testConstructor() {
-    assertDoesNotThrow(() -> new CheckModuleAdapter(null, /* open = */ false));
+    assertDoesNotThrow(() -> new CheckModuleAdapter(null, /* open= */ false));
     assertThrows(
-        IllegalStateException.class, () -> new CheckModuleAdapter(null, /* open = */ false) {});
+        IllegalStateException.class, () -> new CheckModuleAdapter(null, /* open= */ false) {});
   }
 
   @Test // see issue #317804
   void testVisitRequire_javaBaseTransitive() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
     checkModuleAdapter.classVersion = Opcodes.V10;
 
     Executable visitRequire =
@@ -65,7 +65,7 @@ class CheckModuleAdapterTest {
 
   @Test // see issue #317804
   void testVisitRequire_javaBaseStaticPhase() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
     checkModuleAdapter.classVersion = Opcodes.V10;
 
     Executable visitRequire =
@@ -79,7 +79,7 @@ class CheckModuleAdapterTest {
 
   @Test // see issue #317804
   void testVisitRequire_javaBaseTransitiveAndStaticPhase() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
     checkModuleAdapter.classVersion = Opcodes.V10;
 
     Executable visitRequire =
@@ -95,7 +95,7 @@ class CheckModuleAdapterTest {
 
   @Test // see issue #317804
   void testVisitRequire_javaBaseTransitiveOrStaticPhaseAreIgnoredUnderJvms9() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
     checkModuleAdapter.classVersion = Opcodes.V9;
 
     Executable visitRequire =
@@ -108,7 +108,7 @@ class CheckModuleAdapterTest {
 
   @Test
   void testVisitExport_nullArray() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
 
     Executable visitExport = () -> checkModuleAdapter.visitExport("package", 0, (String[]) null);
 
@@ -117,7 +117,7 @@ class CheckModuleAdapterTest {
 
   @Test
   void testVisitOpen_nullArray() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
 
     Executable visitOpen = () -> checkModuleAdapter.visitOpen("package", 0, (String[]) null);
 
@@ -126,7 +126,7 @@ class CheckModuleAdapterTest {
 
   @Test
   void testVisitOpen_openModule() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ true);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ true);
 
     Executable visitOpen = () -> checkModuleAdapter.visitOpen("package", 0, (String[]) null);
 
@@ -136,7 +136,7 @@ class CheckModuleAdapterTest {
 
   @Test
   void testVisitUse_nameAlreadyDeclared() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
     checkModuleAdapter.visitUse("service");
 
     Executable visitUse = () -> checkModuleAdapter.visitUse("service");
@@ -147,7 +147,7 @@ class CheckModuleAdapterTest {
 
   @Test
   void testVisitUse_afterEnd() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
     checkModuleAdapter.visitEnd();
 
     Executable visitUse = () -> checkModuleAdapter.visitUse("service");
@@ -159,7 +159,7 @@ class CheckModuleAdapterTest {
 
   @Test
   void testVisitProvide_nullProviderList() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
 
     Executable visitProvide = () -> checkModuleAdapter.visitProvide("service2", (String[]) null);
 
@@ -169,7 +169,7 @@ class CheckModuleAdapterTest {
 
   @Test
   void testVisitProvide_emptyProviderList() {
-    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open = */ false);
+    CheckModuleAdapter checkModuleAdapter = new CheckModuleAdapter(null, /* open= */ false);
 
     Executable visitProvide = () -> checkModuleAdapter.visitProvide("service1");
 

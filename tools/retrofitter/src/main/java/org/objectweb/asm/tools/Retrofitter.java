@@ -275,7 +275,7 @@ public class Retrofitter {
         final String signature,
         final String superName,
         final String[] interfaces) {
-      addPackageReferences(Type.getObjectType(name), /* export = */ true);
+      addPackageReferences(Type.getObjectType(name), /* export= */ true);
       super.visit(Opcodes.V1_5, access, name, signature, superName, interfaces);
     }
 
@@ -286,7 +286,7 @@ public class Retrofitter {
         final String descriptor,
         final String signature,
         final Object value) {
-      addPackageReferences(Type.getType(descriptor), /* export = */ false);
+      addPackageReferences(Type.getType(descriptor), /* export= */ false);
       return super.visitField(access, name, descriptor, signature, value);
     }
 
@@ -297,14 +297,14 @@ public class Retrofitter {
         final String descriptor,
         final String signature,
         final String[] exceptions) {
-      addPackageReferences(Type.getType(descriptor), /* export = */ false);
+      addPackageReferences(Type.getType(descriptor), /* export= */ false);
       return new MethodVisitor(
           api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
 
         @Override
         public void visitFieldInsn(
             final int opcode, final String owner, final String name, final String descriptor) {
-          addPackageReferences(Type.getType(descriptor), /* export = */ false);
+          addPackageReferences(Type.getType(descriptor), /* export= */ false);
           super.visitFieldInsn(opcode, owner, name, descriptor);
         }
 
@@ -315,7 +315,7 @@ public class Retrofitter {
             final String name,
             final String descriptor,
             final boolean isInterface) {
-          addPackageReferences(Type.getType(descriptor), /* export = */ false);
+          addPackageReferences(Type.getType(descriptor), /* export= */ false);
           // Remove the addSuppressed() method calls generated for try-with-resources statements.
           // This method is not defined in JDK1.5.
           if (owner.equals("java/lang/Throwable")
@@ -329,13 +329,13 @@ public class Retrofitter {
 
         @Override
         public void visitTypeInsn(final int opcode, final String type) {
-          addPackageReferences(Type.getObjectType(type), /* export = */ false);
+          addPackageReferences(Type.getObjectType(type), /* export= */ false);
           super.visitTypeInsn(opcode, type);
         }
 
         @Override
         public void visitMultiANewArrayInsn(final String descriptor, final int numDimensions) {
-          addPackageReferences(Type.getType(descriptor), /* export = */ false);
+          addPackageReferences(Type.getType(descriptor), /* export= */ false);
           super.visitMultiANewArrayInsn(descriptor, numDimensions);
         }
 
@@ -343,7 +343,7 @@ public class Retrofitter {
         public void visitTryCatchBlock(
             final Label start, final Label end, final Label handler, final String type) {
           if (type != null) {
-            addPackageReferences(Type.getObjectType(type), /* export = */ false);
+            addPackageReferences(Type.getObjectType(type), /* export= */ false);
           }
           super.visitTryCatchBlock(start, end, handler, type);
         }

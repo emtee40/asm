@@ -255,8 +255,8 @@ public class ClassFile {
    */
   private void computeNameAndDumps() {
     try {
-      Builder builder = new Builder("ClassFile", /* parent = */ null);
-      Builder constantPoolBuilder = new Builder("ConstantPool", /* parent = */ null);
+      Builder builder = new Builder("ClassFile", /* parent= */ null);
+      Builder constantPoolBuilder = new Builder("ConstantPool", /* parent= */ null);
       ConstantClassInfo classInfo =
           dumpClassFile(new Parser(classBytes), builder, constantPoolBuilder);
       className = classInfo.dump().replace('/', '.');
@@ -288,7 +288,7 @@ public class ClassFile {
     builder.add("magic: ", parser.u4());
     builder.add("minor_version: ", parser.u2());
     int majorVersion = parser.u2();
-    if (majorVersion > /* V15 = */ 59) {
+    if (majorVersion > /* V15= */ 59) {
       throw new ClassFormatException("Unsupported class version");
     }
     builder.add("major_version: ", majorVersion);
@@ -1753,6 +1753,7 @@ public class ClassFile {
   private abstract static class CpInfo {
     /** The dump of this item. */
     private String dump;
+
     /** The context to use to get the referenced constant pool items. */
     private final ClassContext classContext;
 
@@ -2284,6 +2285,7 @@ public class ClassFile {
   private static class InstructionIndex {
     /** An offset in bytes from the start of the bytecode of a method. */
     private final int bytecodeOffset;
+
     /** The context to use to find the index from the bytecode offset. */
     private final MethodContext methodContext;
 
@@ -2378,10 +2380,13 @@ public class ClassFile {
   private abstract static class AbstractBuilder<T> implements ClassContext, MethodContext {
     /** Flag used to distinguish CpInfo keys in {@link #context}. */
     private static final int CP_INFO_KEY = 0xF0000000;
+
     /** The parent node of this node. May be {@literal null}. */
     private final AbstractBuilder<?> parent;
+
     /** The children of this builder. */
     final ArrayList<T> children;
+
     /** The map used to implement the Context interfaces. */
     private final HashMap<Integer, Object> context;
 
