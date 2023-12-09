@@ -43,7 +43,7 @@ final class MethodNodeBuilder {
   private final MethodNode methodNode;
 
   MethodNodeBuilder() {
-    this(/* maxStack = */ 10, /* maxLocals = */ 10);
+    this(/* maxStack= */ 10, /* maxLocals= */ 10);
   }
 
   MethodNodeBuilder(final int maxStack, final int maxLocals) {

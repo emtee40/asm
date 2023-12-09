@@ -1110,7 +1110,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
     MethodVisitor methodVisitor =
         new CheckMethodAdapter.MethodWriterWrapper(
             /* latest api = */ Opcodes.ASM9,
-            /* version = */ Opcodes.V1_5,
+            /* version= */ Opcodes.V1_5,
             classWriter,
             new MethodVisitor(/* latest api = */ Opcodes.ASM9) {});
     MethodVisitor dataFlowCheckMethodAdapter =
@@ -1131,7 +1131,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
     MethodVisitor methodVisitor =
         new CheckMethodAdapter.MethodWriterWrapper(
             /* latest api = */ Opcodes.ASM9,
-            /* version = */ Opcodes.V1_5,
+            /* version= */ Opcodes.V1_5,
             classWriter,
             new MethodVisitor(/* latest api = */ Opcodes.ASM9) {});
     MethodVisitor dataFlowCheckMethodAdapter =
@@ -1152,7 +1152,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
     MethodVisitor methodVisitor =
         new CheckMethodAdapter.MethodWriterWrapper(
             /* latest api = */ Opcodes.ASM9,
-            /* version = */ Opcodes.V1_5,
+            /* version= */ Opcodes.V1_5,
             classWriter,
             new MethodVisitor(/* latest api = */ Opcodes.ASM9) {});
     MethodVisitor dataFlowCheckMethodAdapter =
@@ -1177,7 +1177,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
     MethodVisitor methodVisitor =
         new CheckMethodAdapter.MethodWriterWrapper(
             /* latest api = */ Opcodes.ASM9,
-            /* version = */ Opcodes.V1_7,
+            /* version= */ Opcodes.V1_7,
             classWriter,
             new MethodVisitor(/* latest api = */ Opcodes.ASM9) {});
     MethodVisitor dataFlowCheckMethodAdapter =
@@ -1202,7 +1202,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
     MethodVisitor methodVisitor =
         new CheckMethodAdapter.MethodWriterWrapper(
             /* latest api = */ Opcodes.ASM9,
-            /* version = */ Opcodes.V1_7,
+            /* version= */ Opcodes.V1_7,
             classWriter,
             new MethodVisitor(/* latest api = */ Opcodes.ASM9) {});
     MethodVisitor dataFlowCheckMethodAdapter =

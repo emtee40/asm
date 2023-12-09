@@ -174,7 +174,7 @@ public class Analyzer<V extends Value> implements Opcodes {
           if (insnNode instanceof JumpInsnNode) {
             JumpInsnNode jumpInsn = (JumpInsnNode) insnNode;
             if (insnOpcode != GOTO && insnOpcode != JSR) {
-              currentFrame.initJumpTarget(insnOpcode, /* target = */ null);
+              currentFrame.initJumpTarget(insnOpcode, /* target= */ null);
               merge(insnIndex + 1, currentFrame, subroutine);
               newControlFlowEdge(insnIndex, insnIndex + 1);
             }

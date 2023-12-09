@@ -156,7 +156,7 @@ class AnalyzerWithBasicInterpreterTest extends AsmTest {
   @Test
   void testAnalyzeAndComputeMaxs_staticMethod() throws AnalyzerException {
     MethodNode methodNode =
-        new MethodNodeBuilder("(I)V", /* maxStack = */ 0, /* maxLocals = */ 0).vreturn().build();
+        new MethodNodeBuilder("(I)V", /* maxStack= */ 0, /* maxLocals= */ 0).vreturn().build();
     methodNode.access |= Opcodes.ACC_STATIC;
     Analyzer<BasicValue> analyzer = new Analyzer<BasicValue>(new BasicInterpreter());
 
