@@ -564,7 +564,7 @@ class ConstantsTest {
 
   private static int getIntegerValue(final Field field) {
     try {
-      return ((Integer) field.get(null)).intValue();
+      return (int) field.get(null);
     } catch (IllegalAccessException e) {
       throw new IllegalArgumentException(e);
     }

@@ -32,8 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -73,7 +71,7 @@ class SmallSetTest {
     Set<Object> union2 = set2.union(set1);
 
     assertEquals(union1, union2);
-    assertEquals(union1, new HashSet<Object>(Arrays.asList(ELEMENT1)));
+    assertEquals(union1, Set.of(ELEMENT1));
   }
 
   @Test
@@ -85,7 +83,7 @@ class SmallSetTest {
     Set<Object> union2 = set2.union(set1);
 
     assertEquals(union1, union2);
-    assertEquals(union1, new HashSet<Object>(Arrays.asList(ELEMENT1, ELEMENT2)));
+    assertEquals(union1, Set.of(ELEMENT1, ELEMENT2));
   }
 
   @Test
@@ -97,7 +95,7 @@ class SmallSetTest {
     Set<Object> union2 = set2.union(set1);
 
     assertEquals(union1, union2);
-    assertEquals(union1, new HashSet<Object>(Arrays.asList(ELEMENT1, ELEMENT2)));
+    assertEquals(union1, Set.of(ELEMENT1, ELEMENT2));
   }
 
   @Test
@@ -109,7 +107,7 @@ class SmallSetTest {
     Set<Object> union2 = set2.union(set1);
 
     assertEquals(union1, union2);
-    assertEquals(union1, new HashSet<Object>(Arrays.asList(ELEMENT1, ELEMENT2, ELEMENT3)));
+    assertEquals(union1, Set.of(ELEMENT1, ELEMENT2, ELEMENT3));
   }
 
   @Test
@@ -121,8 +119,7 @@ class SmallSetTest {
     Set<Object> union2 = set2.union(set1);
 
     assertEquals(union1, union2);
-    assertEquals(
-        union1, new HashSet<Object>(Arrays.asList(ELEMENT1, ELEMENT2, ELEMENT3, ELEMENT4)));
+    assertEquals(union1, Set.of(ELEMENT1, ELEMENT2, ELEMENT3, ELEMENT4));
   }
 
   @Test
@@ -166,6 +163,6 @@ class SmallSetTest {
   }
 
   private static SmallSet<Object> newSmallSet(final Object element1, final Object element2) {
-    return (SmallSet<Object>) new SmallSet<Object>(element1).union(new SmallSet<Object>(element2));
+    return (SmallSet<Object>) new SmallSet<>(element1).union(new SmallSet<>(element2));
   }
 }

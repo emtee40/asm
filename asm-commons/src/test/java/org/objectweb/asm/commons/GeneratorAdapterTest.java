@@ -37,7 +37,7 @@ import static org.objectweb.asm.commons.GeneratorAdapter.LE;
 import static org.objectweb.asm.commons.GeneratorAdapter.LT;
 import static org.objectweb.asm.commons.GeneratorAdapter.NE;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -109,7 +109,7 @@ class GeneratorAdapterTest {
     assertEquals(Opcodes.ACC_PUBLIC, methodNode.access);
     assertEquals("name", methodNode.name);
     assertEquals("()V", methodNode.desc);
-    assertEquals(Arrays.asList("java/lang/Exception"), methodNode.exceptions);
+    assertEquals(List.of("java/lang/Exception"), methodNode.exceptions);
   }
 
   @Test
@@ -127,7 +127,7 @@ class GeneratorAdapterTest {
     assertEquals(Opcodes.ACC_PUBLIC, methodNode.access);
     assertEquals("name", methodNode.name);
     assertEquals("()V", methodNode.desc);
-    assertEquals(Arrays.asList(), methodNode.exceptions);
+    assertEquals(List.of(), methodNode.exceptions);
   }
 
   @Test

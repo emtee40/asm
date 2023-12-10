@@ -29,7 +29,7 @@ package org.objectweb.asm.tree;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.test.AsmTest;
 
@@ -50,7 +50,7 @@ class LookupSwitchInsnNodeTest extends AsmTest {
 
     assertEquals(AbstractInsnNode.LOOKUPSWITCH_INSN, lookupSwitchInsnNode.getType());
     assertEquals(dflt, lookupSwitchInsnNode.dflt);
-    assertEquals(Arrays.asList(new Integer[] {1}), lookupSwitchInsnNode.keys);
-    assertEquals(Arrays.asList(labels), lookupSwitchInsnNode.labels);
+    assertEquals(List.of(1), lookupSwitchInsnNode.keys);
+    assertEquals(List.of(labels), lookupSwitchInsnNode.labels);
   }
 }

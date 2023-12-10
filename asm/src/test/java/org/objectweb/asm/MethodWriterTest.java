@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -64,39 +63,38 @@ class MethodWriterTest {
                 })
             .collect(toSet());
 
-    HashSet<String> expectedAttributes =
-        new HashSet<String>(
-            Arrays.asList(
-                Constants.CONSTANT_VALUE,
-                Constants.CODE,
-                Constants.STACK_MAP_TABLE,
-                Constants.EXCEPTIONS,
-                Constants.INNER_CLASSES,
-                Constants.ENCLOSING_METHOD,
-                Constants.SYNTHETIC,
-                Constants.SIGNATURE,
-                Constants.SOURCE_FILE,
-                Constants.SOURCE_DEBUG_EXTENSION,
-                Constants.LINE_NUMBER_TABLE,
-                Constants.LOCAL_VARIABLE_TABLE,
-                Constants.LOCAL_VARIABLE_TYPE_TABLE,
-                Constants.DEPRECATED,
-                Constants.RUNTIME_VISIBLE_ANNOTATIONS,
-                Constants.RUNTIME_INVISIBLE_ANNOTATIONS,
-                Constants.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS,
-                Constants.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS,
-                Constants.RUNTIME_VISIBLE_TYPE_ANNOTATIONS,
-                Constants.RUNTIME_INVISIBLE_TYPE_ANNOTATIONS,
-                Constants.ANNOTATION_DEFAULT,
-                Constants.BOOTSTRAP_METHODS,
-                Constants.METHOD_PARAMETERS,
-                Constants.MODULE,
-                Constants.MODULE_PACKAGES,
-                Constants.MODULE_MAIN_CLASS,
-                Constants.NEST_HOST,
-                Constants.NEST_MEMBERS,
-                Constants.PERMITTED_SUBCLASSES,
-                Constants.RECORD));
+    Set<String> expectedAttributes =
+        Set.of(
+            Constants.CONSTANT_VALUE,
+            Constants.CODE,
+            Constants.STACK_MAP_TABLE,
+            Constants.EXCEPTIONS,
+            Constants.INNER_CLASSES,
+            Constants.ENCLOSING_METHOD,
+            Constants.SYNTHETIC,
+            Constants.SIGNATURE,
+            Constants.SOURCE_FILE,
+            Constants.SOURCE_DEBUG_EXTENSION,
+            Constants.LINE_NUMBER_TABLE,
+            Constants.LOCAL_VARIABLE_TABLE,
+            Constants.LOCAL_VARIABLE_TYPE_TABLE,
+            Constants.DEPRECATED,
+            Constants.RUNTIME_VISIBLE_ANNOTATIONS,
+            Constants.RUNTIME_INVISIBLE_ANNOTATIONS,
+            Constants.RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS,
+            Constants.RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS,
+            Constants.RUNTIME_VISIBLE_TYPE_ANNOTATIONS,
+            Constants.RUNTIME_INVISIBLE_TYPE_ANNOTATIONS,
+            Constants.ANNOTATION_DEFAULT,
+            Constants.BOOTSTRAP_METHODS,
+            Constants.METHOD_PARAMETERS,
+            Constants.MODULE,
+            Constants.MODULE_PACKAGES,
+            Constants.MODULE_MAIN_CLASS,
+            Constants.NEST_HOST,
+            Constants.NEST_MEMBERS,
+            Constants.PERMITTED_SUBCLASSES,
+            Constants.RECORD);
     // IMPORTANT: if this fails, update the list AND update MethodWriter.canCopyMethodAttributes(),
     // if needed.
     assertEquals(expectedAttributes, actualAttributes);

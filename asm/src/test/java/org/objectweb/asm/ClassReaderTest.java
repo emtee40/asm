@@ -216,8 +216,6 @@ class ClassReaderTest extends AsmTest implements Opcodes {
         ClassLoader.getSystemResourceAsStream(
             classParameter.getName().replace('.', '/') + ".class")) {
       classReader = new ClassReader(inputStream);
-    } catch (IOException ioe) {
-      throw ioe;
     }
 
     assertNotEquals(0, classReader.getAccess());
@@ -259,8 +257,6 @@ class ClassReaderTest extends AsmTest implements Opcodes {
       assertTimeoutPreemptively(
           Duration.ofMillis(100),
           () -> assertThrows(ArrayIndexOutOfBoundsException.class, streamConstructor));
-    } catch (IOException ioe) {
-      throw ioe;
     }
   }
 
@@ -452,7 +448,7 @@ class ClassReaderTest extends AsmTest implements Opcodes {
         || invalidClass == InvalidClass.INVALID_BYTECODE_OFFSET) {
       Exception exception = assertThrows(ArrayIndexOutOfBoundsException.class, accept);
       Matcher matcher = Pattern.compile("\\d+").matcher(exception.getMessage());
-      assertTrue(matcher.find() && Integer.valueOf(matcher.group()) > 0);
+      assertTrue(matcher.find() && Integer.parseInt(matcher.group()) > 0);
     } else {
       assertThrows(IllegalArgumentException.class, accept);
     }

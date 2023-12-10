@@ -32,9 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
@@ -89,10 +88,10 @@ class AsmTestTest extends AsmTest {
     List<Arguments> allArguments = allClassesAndAllApis().collect(Collectors.toList());
 
     assertEquals(
-        new HashSet<Object>(Arrays.asList(PrecompiledClass.values())),
+        Set.of(PrecompiledClass.values()),
         allArguments.stream().map(arg -> arg.get()[0]).collect(Collectors.toSet()));
     assertEquals(
-        new HashSet<Object>(Arrays.asList(Api.values())),
+        Set.of(Api.values()),
         allArguments.stream().map(arg -> arg.get()[1]).collect(Collectors.toSet()));
   }
 
@@ -101,10 +100,10 @@ class AsmTestTest extends AsmTest {
     List<Arguments> allArguments = allClassesAndLatestApi().collect(Collectors.toList());
 
     assertEquals(
-        new HashSet<Object>(Arrays.asList(PrecompiledClass.values())),
+        Set.of(PrecompiledClass.values()),
         allArguments.stream().map(arg -> arg.get()[0]).collect(Collectors.toSet()));
     assertEquals(
-        new HashSet<Object>(Arrays.asList(Api.ASM9)),
+        Set.of(Api.ASM9),
         allArguments.stream().map(arg -> arg.get()[1]).collect(Collectors.toSet()));
   }
 }

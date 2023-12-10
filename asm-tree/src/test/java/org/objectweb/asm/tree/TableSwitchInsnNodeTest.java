@@ -29,7 +29,7 @@ package org.objectweb.asm.tree;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.test.AsmTest;
 
@@ -51,6 +51,6 @@ class TableSwitchInsnNodeTest extends AsmTest {
     assertEquals(0, tableSwitchInsnNode.min);
     assertEquals(1, tableSwitchInsnNode.max);
     assertEquals(dflt, tableSwitchInsnNode.dflt);
-    assertEquals(Arrays.asList(labels), tableSwitchInsnNode.labels);
+    assertEquals(List.of(labels), tableSwitchInsnNode.labels);
   }
 }
