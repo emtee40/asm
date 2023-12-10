@@ -28,17 +28,29 @@
 package org.objectweb.asm.tools;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.NEW;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.lang.module.ModuleDescriptor;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,13 +78,22 @@ import org.objectweb.asm.Type;
  * @author Eric Bruneton
  * @author Eugene Kuleshov
  */
-public class Retrofitter {
+public final class Retrofitter {
 
   /** The name of the module-info file. */
   private static final String MODULE_INFO = "module-info.class";
 
   /** The name of the java.base module. */
   private static final String JAVA_BASE_MODULE = "java.base";
+
+  /** Bootstrap method for the string concatenation using indy. */
+  private static final Handle STRING_CONCAT_FACTORY_HANDLE =
+      new Handle(
+          Opcodes.H_INVOKESTATIC,
+          "java/lang/invoke/StringConcatFactory",
+          "makeConcatWithConstants",
+          "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;",
+          false);
 
   /**
    * The fields and methods of the JDK 1.5 API. Each string has the form
@@ -101,7 +122,7 @@ public class Retrofitter {
    */
   public static void main(final String[] args) throws IOException {
     if (args.length == 2) {
-      new Retrofitter().retrofit(new File(args[0]), args[1]);
+      new Retrofitter().retrofit(Paths.get(args[0]), args[1]);
     } else {
       System.err.println("Usage: Retrofitter <classes directory> <ASM release version>"); // NOPMD
     }
@@ -116,12 +137,12 @@ public class Retrofitter {
    * @param version the module-info version.
    * @throws IOException if a file can't be read or written.
    */
-  public void retrofit(final File classesDir, final String version) throws IOException {
-    for (File classFile : getAllClasses(classesDir, new ArrayList<File>())) {
-      ClassReader classReader = new ClassReader(Files.newInputStream(classFile.toPath()));
+  public void retrofit(final Path classesDir, final String version) throws IOException {
+    for (Path classFile : getAllClasses(classesDir, /* includeModuleInfo= */ true)) {
+      ClassReader classReader = new ClassReader(Files.readAllBytes(classFile));
       ClassWriter classWriter = new ClassWriter(0);
       classReader.accept(new ClassRetrofitter(classWriter), ClassReader.SKIP_FRAMES);
-      Files.write(classFile.toPath(), classWriter.toByteArray());
+      Files.write(classFile, classWriter.toByteArray());
     }
     generateModuleInfoClass(classesDir, version);
   }
@@ -138,7 +159,7 @@ public class Retrofitter {
    * @throws IllegalArgumentException if the module-info class does not have the expected content.
    */
   public void verify(
-      final File classesDir,
+      final Path classesDir,
       final String expectedVersion,
       final List<String> expectedExports,
       final List<String> expectedRequires)
@@ -146,35 +167,175 @@ public class Retrofitter {
     if (jdkApi.isEmpty()) {
       readJdkApi();
     }
-    for (File classFile : getAllClasses(classesDir, new ArrayList<File>())) {
-      if (!classFile.getName().equals(MODULE_INFO)) {
-        new ClassReader(Files.newInputStream(classFile.toPath())).accept(new ClassVerifier(), 0);
-      }
+
+    List<Path> classFiles = getAllClasses(classesDir, /* includeModuleInfo= */ false);
+    List<ClassReader> classReaders = getClassReaders(classFiles);
+    for (ClassReader classReader : classReaders) {
+      classReader.accept(new ClassVerifier(), 0);
     }
+    checkPrivateMemberAccess(classReaders);
     verifyModuleInfoClass(
         classesDir,
         expectedVersion,
-        new HashSet<String>(expectedExports),
+        new HashSet<>(expectedExports),
         Stream.concat(expectedRequires.stream(), Stream.of(JAVA_BASE_MODULE)).collect(toSet()));
   }
 
-  private List<File> getAllClasses(final File file, final List<File> allClasses)
-      throws IOException {
-    if (file.isDirectory()) {
-      File[] children = file.listFiles();
-      if (children == null) {
-        throw new IOException("Unable to read files of " + file);
-      }
-      for (File child : children) {
-        getAllClasses(child, allClasses);
-      }
-    } else if (file.getName().endsWith(".class")) {
-      allClasses.add(file);
+  private List<ClassReader> getClassReaders(final List<Path> classFiles) throws IOException {
+    ArrayList<ClassReader> classReaders = new ArrayList<>();
+    for (Path classFile : classFiles) {
+      classReaders.add(new ClassReader(Files.readAllBytes(classFile)));
     }
-    return allClasses;
+    return classReaders;
   }
 
-  private void generateModuleInfoClass(final File dstDir, final String version) throws IOException {
+  private List<Path> getAllClasses(final Path path, final boolean includeModuleInfo)
+      throws IOException {
+    try (Stream<Path> stream = Files.walk(path)) {
+      return stream
+          .filter(
+              child -> {
+                String filename = child.getFileName().toString();
+                return filename.endsWith(".class")
+                    && (includeModuleInfo || !filename.equals("module-info.class"));
+              })
+          .collect(toList());
+    }
+  }
+
+  /**
+   * Checks that no code accesses to a private member from another class. If there is a private
+   * access, removing the nestmate attributes is not a legal transformation.
+   */
+  private static void checkPrivateMemberAccess(final List<ClassReader> readers) {
+    // Compute all private members.
+    HashMap<String, HashSet<String>> privateMemberMap = new HashMap<>();
+    for (ClassReader reader : readers) {
+      HashSet<String> privateMembers = new HashSet<>();
+      reader.accept(
+          new ClassVisitor(/* latest api =*/ Opcodes.ASM9) {
+            @Override
+            public void visit(
+                final int version,
+                final int access,
+                final String name,
+                final String signature,
+                final String superName,
+                final String[] interfaces) {
+              privateMemberMap.put(name, privateMembers);
+            }
+
+            @Override
+            public FieldVisitor visitField(
+                final int access,
+                final String name,
+                final String descriptor,
+                final String signature,
+                final Object value) {
+              if ((access & ACC_PRIVATE) != 0) {
+                privateMembers.add(name + '/' + descriptor);
+              }
+              return null;
+            }
+
+            @Override
+            public MethodVisitor visitMethod(
+                final int access,
+                final String name,
+                final String descriptor,
+                final String signature,
+                final String[] exceptions) {
+              if ((access & ACC_PRIVATE) != 0) {
+                privateMembers.add(name + '/' + descriptor);
+              }
+              return null;
+            }
+          },
+          0);
+    }
+
+    // Verify that there is no access to a private member of another class.
+    for (ClassReader reader : readers) {
+      reader.accept(
+          new ClassVisitor(/* latest api =*/ Opcodes.ASM9) {
+            /** The internal name of the visited class. */
+            String className;
+
+            /** The name and descriptor of the currently visited method. */
+            String currentMethodName;
+
+            @Override
+            public void visit(
+                final int version,
+                final int access,
+                final String name,
+                final String signature,
+                final String superName,
+                final String[] interfaces) {
+              className = name;
+            }
+
+            @Override
+            public MethodVisitor visitMethod(
+                final int access,
+                final String name,
+                final String descriptor,
+                final String signature,
+                final String[] exceptions) {
+              currentMethodName = name + descriptor;
+              return new MethodVisitor(/* latest api =*/ Opcodes.ASM9) {
+
+                private void checkAccess(
+                    final String owner, final String name, final String descriptor) {
+                  if (owner.equals(className)) { // same class access
+                    return;
+                  }
+                  HashSet<String> members = privateMemberMap.get(owner);
+                  if (members == null) { // not a known class
+                    return;
+                  }
+                  if (members.contains(name + '/' + descriptor)) {
+                    throw new IllegalArgumentException(
+                        format(
+                            "ERROR: illegal access to a private member %s.%s called in %s %s",
+                            owner, name + " " + descriptor, className, currentMethodName));
+                  }
+                }
+
+                @Override
+                public void visitFieldInsn(
+                    final int opcode,
+                    final String owner,
+                    final String name,
+                    final String descriptor) {
+                  checkAccess(owner, name, descriptor);
+                }
+
+                @Override
+                public void visitMethodInsn(
+                    final int opcode,
+                    final String owner,
+                    final String name,
+                    final String descriptor,
+                    final boolean isInterface) {
+                  checkAccess(owner, name, descriptor);
+                }
+
+                @Override
+                public void visitLdcInsn(final Object value) {
+                  if (value instanceof Handle) {
+                    Handle handle = (Handle) value;
+                    checkAccess(handle.getOwner(), handle.getName(), handle.getDesc());
+                  }
+                }
+              };
+            }
+          },
+          0);
+    }
+  }
+
+  private void generateModuleInfoClass(final Path dstDir, final String version) throws IOException {
     ClassWriter classWriter = new ClassWriter(0);
     classWriter.visit(Opcodes.V9, Opcodes.ACC_MODULE, "module-info", null, null, null);
     ArrayList<String> moduleNames = new ArrayList<>();
@@ -201,17 +362,17 @@ public class Retrofitter {
     }
     moduleVisitor.visitEnd();
     classWriter.visitEnd();
-    Files.write(Path.of(dstDir.getAbsolutePath(), MODULE_INFO), classWriter.toByteArray());
+    Files.write(dstDir.toAbsolutePath().resolve(MODULE_INFO), classWriter.toByteArray());
   }
 
   private void verifyModuleInfoClass(
-      final File dstDir,
+      final Path dstDir,
       final String expectedVersion,
       final Set<String> expectedExports,
       final Set<String> expectedRequires)
       throws IOException {
     ModuleDescriptor module =
-        ModuleDescriptor.read(Files.newInputStream(Path.of(dstDir.getAbsolutePath(), MODULE_INFO)));
+        ModuleDescriptor.read(Files.newInputStream(dstDir.toAbsolutePath().resolve(MODULE_INFO)));
     String version = module.version().map(ModuleDescriptor.Version::toString).orElse("");
     if (!version.equals(expectedVersion)) {
       throw new IllegalArgumentException(
@@ -240,31 +401,32 @@ public class Retrofitter {
     try (InputStream inputStream =
             new GZIPInputStream(
                 Retrofitter.class.getClassLoader().getResourceAsStream("jdk1.5.0.12.txt.gz"));
-        BufferedReader reader = new LineNumberReader(new InputStreamReader(inputStream))) {
-      while (true) {
-        String line = reader.readLine();
-        if (line != null) {
-          if (line.startsWith("class")) {
-            String className = line.substring(6, line.lastIndexOf(' '));
-            String superClassName = line.substring(line.lastIndexOf(' ') + 1);
-            jdkHierarchy.put(className, superClassName);
-          } else {
-            jdkApi.add(line);
-          }
+        InputStreamReader inputStreamReader =
+            new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+        BufferedReader reader = new LineNumberReader(inputStreamReader)) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        if (line.startsWith("class")) {
+          String className = line.substring(6, line.lastIndexOf(' '));
+          String superClassName = line.substring(line.lastIndexOf(' ') + 1);
+          jdkHierarchy.put(className, superClassName);
         } else {
-          break;
+          jdkApi.add(line);
         }
       }
-    } catch (IOException ioe) {
-      throw ioe;
     }
   }
 
   /** A ClassVisitor that retrofits classes to 1.5 version. */
-  class ClassRetrofitter extends ClassVisitor {
+  final class ClassRetrofitter extends ClassVisitor {
+    /** The internal name of the visited class. */
+    String owner;
+
+    /** An id used to generate the name of the synthetic string concatenation methods. */
+    int concatMethodId;
 
     public ClassRetrofitter(final ClassVisitor classVisitor) {
-      super(/* latest api =*/ Opcodes.ASM8, classVisitor);
+      super(/* latest api =*/ Opcodes.ASM9, classVisitor);
     }
 
     @Override
@@ -275,8 +437,20 @@ public class Retrofitter {
         final String signature,
         final String superName,
         final String[] interfaces) {
+      owner = name;
+      concatMethodId = 0;
       addPackageReferences(Type.getObjectType(name), /* export= */ true);
       super.visit(Opcodes.V1_5, access, name, signature, superName, interfaces);
+    }
+
+    @Override
+    public void visitNestHost(final String nestHost) {
+      // Remove the NestHost attribute.
+    }
+
+    @Override
+    public void visitNestMember(final String nestMember) {
+      // Remove the NestMembers attribute.
     }
 
     @Override
@@ -324,6 +498,92 @@ public class Retrofitter {
             visitInsn(Opcodes.POP2);
           } else {
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+          }
+        }
+
+        @Override
+        public void visitInvokeDynamicInsn(
+            final String name,
+            final String descriptor,
+            final Handle bootstrapMethodHandle,
+            final Object... bootstrapMethodArguments) {
+          // For simple recipe, (if there is no constant pool constants used), rewrite the
+          // concatenation using a StringBuilder instead.
+          if (STRING_CONCAT_FACTORY_HANDLE.equals(bootstrapMethodHandle)
+              && bootstrapMethodArguments.length == 1) {
+            String recipe = (String) bootstrapMethodArguments[0];
+            String methodName = "stringConcat$" + concatMethodId++;
+            generateConcatMethod(methodName, descriptor, recipe);
+            super.visitMethodInsn(INVOKESTATIC, owner, methodName, descriptor, false);
+            return;
+          }
+          super.visitInvokeDynamicInsn(
+              name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+        }
+
+        private void generateConcatMethod(
+            final String methodName, final String descriptor, final String recipe) {
+          MethodVisitor mv =
+              visitMethod(
+                  ACC_STATIC | ACC_PRIVATE | ACC_SYNTHETIC, methodName, descriptor, null, null);
+          mv.visitCode();
+          mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+          mv.visitInsn(DUP);
+          mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
+          int nexLocal = 0;
+          int typeIndex = 0;
+          int maxStack = 2;
+          Type[] types = Type.getArgumentTypes(descriptor);
+          StringBuilder text = new StringBuilder();
+          for (int i = 0; i < recipe.length(); i++) {
+            char c = recipe.charAt(i);
+            if (c == '\1') {
+              if (text.length() != 0) {
+                generateConstantTextAppend(mv, text.toString());
+                text.setLength(0);
+              }
+              Type type = types[typeIndex++];
+              mv.visitVarInsn(type.getOpcode(ILOAD), nexLocal);
+              maxStack = Math.max(maxStack, 1 + type.getSize());
+              String desc = stringBuilderAppendDescriptor(type);
+              mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", desc, false);
+              nexLocal += type.getSize();
+            } else {
+              text.append(c);
+            }
+          }
+          if (text.length() != 0) {
+            generateConstantTextAppend(mv, text.toString());
+          }
+          mv.visitMethodInsn(
+              INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+          mv.visitInsn(ARETURN);
+          mv.visitMaxs(maxStack, nexLocal);
+          mv.visitEnd();
+        }
+
+        private void generateConstantTextAppend(final MethodVisitor mv, final String text) {
+          mv.visitLdcInsn(text);
+          mv.visitMethodInsn(
+              INVOKEVIRTUAL,
+              "java/lang/StringBuilder",
+              "append",
+              "(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+              false);
+        }
+
+        private String stringBuilderAppendDescriptor(final Type type) {
+          switch (type.getSort()) {
+            case Type.BYTE:
+            case Type.SHORT:
+            case Type.INT:
+              return "(I)Ljava/lang/StringBuilder;";
+            case Type.OBJECT:
+              return type.getDescriptor().equals("Ljava/lang/String;")
+                  ? "(Ljava/lang/String;)Ljava/lang/StringBuilder;"
+                  : "(Ljava/lang/Object;)Ljava/lang/StringBuilder;";
+            default:
+              return '(' + type.getDescriptor() + ")Ljava/lang/StringBuilder;";
           }
         }
 
@@ -377,12 +637,12 @@ public class Retrofitter {
   /**
    * A ClassVisitor checking that a class uses only JDK 1.5 class file features and the JDK 1.5 API.
    */
-  class ClassVerifier extends ClassVisitor {
+  final class ClassVerifier extends ClassVisitor {
 
     /** The internal name of the visited class. */
     String className;
 
-    /** The name of the currently visited method. */
+    /** The name and descriptor of the currently visited method. */
     String currentMethodName;
 
     public ClassVerifier() {

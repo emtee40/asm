@@ -54,8 +54,8 @@ subprojects {
   repositories { mavenCentral() }
   apply plugin: 'java-library'
   apply plugin: 'jacoco'
-  sourceCompatibility = '1.8'
-  targetCompatibility = '1.8'
+  sourceCompatibility = '11'
+  targetCompatibility = '11'
   test { useJUnitPlatform() }
   ext.provides = []  // The provided java packages, e.g. ['org.objectweb.asm']
   ext.requires = []  // The required Gradle projects, e.g. [':asm-test']
@@ -99,8 +99,8 @@ project(':asm-commons') {
 project(':asm-test') {
   description = "Utilities for testing ${parent.description}"
   provides = ['org.objectweb.asm.test']
-  depends = ['org.junit.jupiter:junit-jupiter-api:5.9.1',
-      'org.junit.jupiter:junit-jupiter-params:5.9.1']
+  depends = ['org.junit.jupiter:junit-jupiter-api:5.10.1',
+      'org.junit.jupiter:junit-jupiter-params:5.10.1']
 }
 
 project(':asm-tree') {
@@ -145,11 +145,11 @@ project(':benchmarks') {
     }
     classes.dependsOn "asm${version}"
   }
-  configurations.create('input-classes-java8')
-  dependencies.add('input-classes-java8', 'io.vavr:vavr:0.10.0@jar')
+  configurations.create('input-classes-java11')
+  dependencies.add('input-classes-java11', 'io.vavr:vavr:0.10.0@jar')
   task copyInputClasses(type: Copy) {
-    from configurations.'input-classes-java8'.collect{zipTree(it)}
-    into "${buildDir}/input-classes-java8"
+    from configurations.'input-classes-java11'.collect{zipTree(it)}
+    into "${buildDir}/input-classes-java11"
   }
   classes.dependsOn copyInputClasses
   jmh {
@@ -168,8 +168,8 @@ project(':tools') {
 
 project(':tools:retrofitter') {
   description = "JDK 1.5 class retrofitter based on ${rootProject.description}"
-  sourceCompatibility = '1.9'
-  targetCompatibility = '1.9'
+  sourceCompatibility = '11'
+  targetCompatibility = '11'
   // TODO: this compiles asm twice (here and in :asm).
   sourceSets.main.java.srcDirs += project(':asm').sourceSets.main.java.srcDirs
 }
@@ -202,9 +202,9 @@ subprojects {
   dependencies {
     requires.each { projectName -> api project(projectName) }
     depends.each { artifactName -> api artifactName }
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.1',
-        'org.junit.jupiter:junit-jupiter-params:5.9.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1',
+        'org.junit.jupiter:junit-jupiter-params:5.10.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
     testImplementation project(':asm-test')
   }
 
@@ -218,7 +218,7 @@ subprojects {
 }
 
 // Configure the projects with a non-empty 'provides' property. They must be
-// checked for code coverage and backward compatibility, retrofited to Java 1.5,
+// checked for code coverage and backward compatibility, retrofitted to Java 1.5,
 // and packaged with generated module-info classes.
 configure(subprojects.findAll{it.provides}) {
   // Code coverage configuration.
@@ -245,7 +245,7 @@ configure(subprojects.findAll{it.provides}) {
       def loader = new URLClassLoader(path.collect {f -> f.toURL()} as URL[])
       def retrofitter =
           loader.loadClass('org.objectweb.asm.tools.Retrofitter').newInstance()
-      def classes = sourceSets.main.output.classesDirs.singleFile
+      def classes = sourceSets.main.output.classesDirs.singleFile.toPath()
       def requires = transitiveRequires() as List
       retrofitter.retrofit(classes, "${version}")
       retrofitter.verify(classes, "${version}", provides, requires)
