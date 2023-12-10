@@ -476,6 +476,12 @@ public final class Retrofitter {
           api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
 
         @Override
+        public void visitParameter(final String name, final int access) {
+          // Javac 21 generates a Parameter attribute for the synthetic/mandated parameters.
+          // Remove the Parameter attribute.
+        }
+
+        @Override
         public void visitFieldInsn(
             final int opcode, final String owner, final String name, final String descriptor) {
           addPackageReferences(Type.getType(descriptor), /* export= */ false);
