@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.objectweb.asm.ClassWriter;
@@ -122,7 +123,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
   @Test
   void testVisitCode_abstractMethod() {
     CheckMethodAdapter checkAbstractMethodAdapter =
-        new CheckMethodAdapter(Opcodes.ACC_ABSTRACT, "m", "()V", null, new HashMap<>());
+        new CheckMethodAdapter(Opcodes.ACC_ABSTRACT, "m", "()V", null, Map.of());
 
     Executable visitCode = () -> checkAbstractMethodAdapter.visitCode();
 
@@ -1086,7 +1087,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
   @Test
   void testVisitEnd_invalidDataFlow() {
     MethodVisitor dataFlowCheckMethodAdapter =
-        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)I", null, new HashMap<>());
+        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)I", null, Map.of());
     dataFlowCheckMethodAdapter.visitCode();
     dataFlowCheckMethodAdapter.visitVarInsn(ILOAD, 1);
     dataFlowCheckMethodAdapter.visitVarInsn(ASTORE, 0);
@@ -1114,7 +1115,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
             classWriter,
             new MethodVisitor(/* latest api = */ Opcodes.ASM9) {});
     MethodVisitor dataFlowCheckMethodAdapter =
-        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)I", methodVisitor, new HashMap<>());
+        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)I", methodVisitor, Map.of());
     dataFlowCheckMethodAdapter.visitCode();
     dataFlowCheckMethodAdapter.visitVarInsn(ILOAD, 1);
     dataFlowCheckMethodAdapter.visitInsn(IRETURN);
@@ -1135,7 +1136,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
             classWriter,
             new MethodVisitor(/* latest api = */ Opcodes.ASM9) {});
     MethodVisitor dataFlowCheckMethodAdapter =
-        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)I", methodVisitor, new HashMap<>());
+        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)I", methodVisitor, Map.of());
     dataFlowCheckMethodAdapter.visitCode();
     dataFlowCheckMethodAdapter.visitVarInsn(ILOAD, 1);
     dataFlowCheckMethodAdapter.visitInsn(IRETURN);
@@ -1156,7 +1157,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
             classWriter,
             new MethodVisitor(/* latest api = */ Opcodes.ASM9) {});
     MethodVisitor dataFlowCheckMethodAdapter =
-        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)I", methodVisitor, new HashMap<>());
+        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)I", methodVisitor, Map.of());
     dataFlowCheckMethodAdapter.visitCode();
     dataFlowCheckMethodAdapter.visitVarInsn(ILOAD, 1);
     dataFlowCheckMethodAdapter.visitInsn(IRETURN);
@@ -1228,7 +1229,7 @@ class CheckMethodAdapterTest extends AsmTest implements Opcodes {
   @Test
   void testVisitEnd_invalidReturnType() {
     MethodVisitor dataFlowCheckMethodAdapter =
-        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)V", null, new HashMap<>());
+        new CheckMethodAdapter(ACC_PUBLIC, "m", "(I)V", null, Map.of());
     dataFlowCheckMethodAdapter.visitCode();
     dataFlowCheckMethodAdapter.visitVarInsn(ILOAD, 1);
     dataFlowCheckMethodAdapter.visitInsn(IRETURN);

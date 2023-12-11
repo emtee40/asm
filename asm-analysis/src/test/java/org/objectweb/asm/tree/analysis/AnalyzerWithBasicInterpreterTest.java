@@ -102,13 +102,13 @@ class AnalyzerWithBasicInterpreterTest extends AsmTest {
           }
         };
 
-    ArrayList<Frame<? extends BasicValue>[]> methodFrames = new ArrayList<>();
+    ArrayList<Frame<BasicValue>[]> methodFrames = new ArrayList<>();
     for (MethodNode methodNode : classNode.methods) {
       methodFrames.add(analyzer.analyze(classNode.name, methodNode));
     }
 
-    for (Frame<? extends BasicValue>[] frames : methodFrames) {
-      for (Frame<? extends BasicValue> frame : frames) {
+    for (Frame<BasicValue>[] frames : methodFrames) {
+      for (Frame<BasicValue> frame : frames) {
         assertTrue(frame == null || frame instanceof CustomFrame);
       }
     }

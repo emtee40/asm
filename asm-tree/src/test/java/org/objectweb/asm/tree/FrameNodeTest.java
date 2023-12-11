@@ -30,7 +30,7 @@ package org.objectweb.asm.tree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.objectweb.asm.Opcodes;
@@ -52,8 +52,8 @@ class FrameNodeTest extends AsmTest {
 
     assertEquals(AbstractInsnNode.FRAME, frameNode.getType());
     assertEquals(Opcodes.F_FULL, frameNode.type);
-    assertEquals(Arrays.asList(locals), frameNode.local);
-    assertEquals(Arrays.asList(stack), frameNode.stack);
+    assertEquals(List.of(locals), frameNode.local);
+    assertEquals(List.of(stack), frameNode.stack);
   }
 
   @Test

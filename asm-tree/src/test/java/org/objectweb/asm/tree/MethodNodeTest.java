@@ -30,7 +30,7 @@ package org.objectweb.asm.tree;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -89,7 +89,7 @@ class MethodNodeTest extends AsmTest {
             method.name = name;
             method.desc = descriptor;
             method.signature = signature;
-            method.exceptions = exceptions == null ? null : Arrays.asList(exceptions);
+            method.exceptions = exceptions == null ? null : List.of(exceptions);
             methods.add(method);
             return method;
           }

@@ -30,7 +30,7 @@ package org.objectweb.asm.commons;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
@@ -53,9 +53,7 @@ class ModuleHashesAttributeTest {
     ClassWriter classWriter = new ClassWriter(0);
     classWriter.visitAttribute(
         new ModuleHashesAttribute(
-            "algorithm",
-            Arrays.asList(new String[] {"module1", "module2"}),
-            Arrays.asList(new byte[][] {HASH1, HASH2})));
+            "algorithm", List.of("module1", "module2"), List.of(HASH1, HASH2)));
 
     ModuleHashesAttribute moduleHashesAttribute = new ModuleHashesAttribute();
     new ClassReader(classWriter.toByteArray())

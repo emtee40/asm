@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -85,7 +85,7 @@ class SimpleVerifierTest {
             /* latest */ Opcodes.ASM10_EXPERIMENTAL,
             baseType,
             superType,
-            Arrays.asList(interfaceType),
+            List.of(interfaceType),
             false) {
 
           @Override

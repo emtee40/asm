@@ -30,7 +30,7 @@ package org.objectweb.asm.benchmarks;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.List;
 import org.gjt.jclasslib.bytecode.ImmediateByteInstruction;
 import org.gjt.jclasslib.bytecode.ImmediateShortInstruction;
 import org.gjt.jclasslib.bytecode.Opcodes;
@@ -82,7 +82,7 @@ public class JClassLibGenerator extends Generator {
           ConstantPoolUtil.addConstantUTF8Info(classFile, CodeAttribute.ATTRIBUTE_NAME, 0));
       codeAttribute1.setCode(
           ByteCodeWriter.writeByteCode(
-              Arrays.asList(
+              List.of(
                   new SimpleInstruction(Opcodes.OPCODE_ALOAD_0),
                   new ImmediateShortInstruction(
                       Opcodes.OPCODE_INVOKESPECIAL,
@@ -107,7 +107,7 @@ public class JClassLibGenerator extends Generator {
           ConstantPoolUtil.addConstantUTF8Info(classFile, CodeAttribute.ATTRIBUTE_NAME, 0));
       codeAttribute2.setCode(
           ByteCodeWriter.writeByteCode(
-              Arrays.asList(
+              List.of(
                   new ImmediateShortInstruction(
                       Opcodes.OPCODE_GETSTATIC,
                       ConstantPoolUtil.addConstantFieldrefInfo(

@@ -189,6 +189,7 @@ class ClassRemapperTest extends AsmTest {
             });
     classRemapper.visit(Opcodes.V1_5, Opcodes.ACC_PUBLIC, "C", null, "java/lang/Object", null);
 
+    // The ClassRemapper change the modules and the hashes so the lists have to be mutable.
     classRemapper.visitAttribute(
         new ModuleHashesAttribute("algorithm", Arrays.asList("pkg.C"), Arrays.asList(new byte[0])));
 

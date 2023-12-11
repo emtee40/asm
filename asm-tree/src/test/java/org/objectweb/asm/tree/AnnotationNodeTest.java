@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.objectweb.asm.AnnotationVisitor;
@@ -75,21 +75,21 @@ class AnnotationNodeTest extends AsmTest {
     annotationNode.visitAnnotation("annotation", "Lpkg/Annotation;");
 
     assertEquals("bytes", annotationNode.values.get(0));
-    assertEquals(Arrays.asList(new Byte[] {0, 1}), annotationNode.values.get(1));
+    assertEquals(List.of((byte) 0, (byte) 1), annotationNode.values.get(1));
     assertEquals("booleans", annotationNode.values.get(2));
-    assertEquals(Arrays.asList(new Boolean[] {false, true}), annotationNode.values.get(3));
+    assertEquals(List.of(false, true), annotationNode.values.get(3));
     assertEquals("shorts", annotationNode.values.get(4));
-    assertEquals(Arrays.asList(new Short[] {0, 1}), annotationNode.values.get(5));
+    assertEquals(List.of((short) 0, (short) 1), annotationNode.values.get(5));
     assertEquals("chars", annotationNode.values.get(6));
-    assertEquals(Arrays.asList(new Character[] {'0', '1'}), annotationNode.values.get(7));
+    assertEquals(List.of('0', '1'), annotationNode.values.get(7));
     assertEquals("ints", annotationNode.values.get(8));
-    assertEquals(Arrays.asList(new Integer[] {0, 1}), annotationNode.values.get(9));
+    assertEquals(List.of(0, 1), annotationNode.values.get(9));
     assertEquals("longs", annotationNode.values.get(10));
-    assertEquals(Arrays.asList(new Long[] {0L, 1L}), annotationNode.values.get(11));
+    assertEquals(List.of(0L, 1L), annotationNode.values.get(11));
     assertEquals("floats", annotationNode.values.get(12));
-    assertEquals(Arrays.asList(new Float[] {0.0f, 1.0f}), annotationNode.values.get(13));
+    assertEquals(List.of(0.0f, 1.0f), annotationNode.values.get(13));
     assertEquals("doubles", annotationNode.values.get(14));
-    assertEquals(Arrays.asList(new Double[] {0.0, 1.0}), annotationNode.values.get(15));
+    assertEquals(List.of(0.0, 1.0), annotationNode.values.get(15));
     assertEquals("string", annotationNode.values.get(16));
     assertEquals("value", annotationNode.values.get(17));
     assertEquals("annotation", annotationNode.values.get(18));
