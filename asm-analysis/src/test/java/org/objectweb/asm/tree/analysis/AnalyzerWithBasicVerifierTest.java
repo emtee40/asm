@@ -247,6 +247,52 @@ class AnalyzerWithBasicVerifierTest extends AsmTest {
     assertEquals("Error at instruction 2: Expected I, but found F", message);
   }
 
+  @Test
+  void testAnalyze_validMethodWithExceptionHandlers() {
+    Label label0 = new Label();
+    Label label1 = new Label();
+    Label label2 = new Label();
+    Label label3 = new Label();
+    Label label4 = new Label();
+    Label label5 = new Label();
+    Label label6 = new Label();
+    MethodNode methodNode =
+        new MethodNodeBuilder("(Ljava/lang/Object;)V", 3, 3)
+            .trycatch(label0, label1, label2, "java/lang/Exception")
+            .trycatch(label1, label3, label4, null)
+            .trycatch(label5, label6, label4, null)
+            .trycatch(label6, label2, label2, "java/lang/Exception")
+            .aload(0)
+            .ifnonnull(label0)
+            .aconst_null()
+            .athrow()
+            .label(label0)
+            .aload(0)
+            .astore(2)
+            .label(label1)
+            .nop()
+            .aload(2)
+            .pop()
+            .label(label3)
+            .vreturn()
+            .label(label4)
+            .astore(1)
+            .label(label5)
+            .aload(2)
+            .pop()
+            .label(label6)
+            .aload(1)
+            .athrow()
+            .label(label2)
+            .astore(1)
+            .go(label3)
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyze(CLASS_NAME, methodNode);
+
+    assertDoesNotThrow(analyze);
+  }
+
   /**
    * Tests that the precompiled classes can be successfully analyzed with a BasicVerifier.
    *
