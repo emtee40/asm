@@ -140,6 +140,73 @@ class AnalyzerWithSimpleVerifierTest extends AsmTest {
     assertDoesNotThrow(() -> MethodNodeBuilder.buildClassWithMethod(methodNode).newInstance());
   }
 
+  @Test
+  void testAnalyze_mergeStackFramesWithExceptionHandlers() throws AnalyzerException {
+    Label startTry0Label = new Label();
+    Label endTry0Label = new Label();
+    Label catch0Label = new Label();
+    Label startTry1Label = new Label();
+    Label endTry1Label = new Label();
+    Label catch1Label = new Label();
+    Label startTry2Label = new Label();
+    Label endTry2Label = new Label();
+    Label catch2Label = new Label();
+    Label label0 = new Label();
+    Label labelReturn = new Label();
+    MethodNode methodNode =
+        new MethodNodeBuilder(2, 6)
+            .trycatch(startTry0Label, endTry0Label, catch0Label, "java/lang/Throwable")
+            .trycatch(startTry1Label, endTry1Label, catch1Label, "java/lang/Throwable")
+            .trycatch(startTry2Label, endTry2Label, catch2Label)
+            .iconst_0()
+            .istore(2)
+            .typeInsn(Opcodes.NEW, "java/lang/String")
+            .astore(3)
+            .typeInsn(Opcodes.NEW, "java/nio/file/Path")
+            .astore(1)
+            .label(startTry2Label)
+            .typeInsn(Opcodes.NEW, "java/io/PrintWriter")
+            .astore(2)
+            .label(startTry0Label)
+            .label(endTry0Label)
+            .aload(2)
+            .methodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintWriter", "close", "()V", false)
+            .go(endTry2Label)
+            .label(catch0Label)
+            .astore(3)
+            .label(startTry1Label)
+            .aload(2)
+            .methodInsn(Opcodes.INVOKEVIRTUAL, "java/io/PrintWriter", "close", "()V", false)
+            .label(endTry1Label)
+            .go(label0)
+            .label(catch1Label)
+            .astore(4)
+            .aload(3)
+            .aload(4)
+            .methodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "java/lang/Throwable",
+                "addSuppressed",
+                "(Ljava/lang/Throwable;)V",
+                false)
+            .label(label0)
+            .aload(3)
+            .athrow()
+            .label(endTry2Label)
+            .go(labelReturn)
+            .label(catch2Label)
+            .astore(5)
+            .aload(5)
+            .athrow()
+            .label(labelReturn)
+            .vreturn()
+            .build();
+
+    Executable analyze = () -> newAnalyzer().analyze(CLASS_NAME, methodNode);
+
+    assertDoesNotThrow(analyze);
+  }
+
   /**
    * Tests that the precompiled classes can be successfully analyzed with a SimpleVerifier.
    *
