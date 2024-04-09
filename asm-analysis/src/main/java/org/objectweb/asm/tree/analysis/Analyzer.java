@@ -165,6 +165,8 @@ public class Analyzer<V extends Value> implements Opcodes {
         if (insnType == AbstractInsnNode.LABEL
             || insnType == AbstractInsnNode.LINE
             || insnType == AbstractInsnNode.FRAME) {
+          // Update the current frame, so it can be used during processing for this instruction
+          currentFrame.init(oldFrame);
           merge(insnIndex + 1, oldFrame, subroutine);
           newControlFlowEdge(insnIndex, insnIndex + 1);
         } else {
