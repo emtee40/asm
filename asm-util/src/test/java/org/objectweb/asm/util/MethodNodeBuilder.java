@@ -47,7 +47,11 @@ final class MethodNodeBuilder {
   }
 
   MethodNodeBuilder(final int maxStack, final int maxLocals) {
-    methodNode = new MethodNode(Opcodes.ACC_PUBLIC, "m", "()V", null, null);
+    this("()V", maxStack, maxLocals);
+  }
+
+  MethodNodeBuilder(final String descriptor, final int maxStack, final int maxLocals) {
+    methodNode = new MethodNode(Opcodes.ACC_PUBLIC, "m", descriptor, null, null);
     methodNode.maxStack = maxStack;
     methodNode.maxLocals = maxLocals;
     methodNode.visitCode();
@@ -60,6 +64,21 @@ final class MethodNodeBuilder {
 
   MethodNodeBuilder iconst_0() {
     methodNode.visitInsn(Opcodes.ICONST_0);
+    return this;
+  }
+
+  MethodNodeBuilder istore(final int variable) {
+    methodNode.visitVarInsn(Opcodes.ISTORE, variable);
+    return this;
+  }
+
+  MethodNodeBuilder aload(final int variable) {
+    methodNode.visitVarInsn(Opcodes.ALOAD, variable);
+    return this;
+  }
+
+  MethodNodeBuilder astore(final int variable) {
+    methodNode.visitVarInsn(Opcodes.ASTORE, variable);
     return this;
   }
 

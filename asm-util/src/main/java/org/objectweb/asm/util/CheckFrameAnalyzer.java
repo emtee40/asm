@@ -123,7 +123,7 @@ class CheckFrameAnalyzer<V extends Value> extends Analyzer<V> {
     }
 
     Frame<V>[] frames = getFrames();
-    Frame<V> currentFrame = frames[0];
+    Frame<V> currentFrame = newFrame(frames[0]);
     expandFrames(owner, method, currentFrame);
     for (int insnIndex = 0; insnIndex < insnList.size(); ++insnIndex) {
       Frame<V> oldFrame = frames[insnIndex];
