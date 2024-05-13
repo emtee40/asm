@@ -211,7 +211,19 @@ public class SimpleVerifier extends BasicVerifier {
         } else if (type.getSort() == Type.OBJECT || type.getSort() == Type.ARRAY) {
           if (isAssignableFrom(expectedType, type)) {
             return true;
-          } else if (getClass(expectedType).isInterface()) {
+          }
+          if (expectedType.getSort() == Type.ARRAY) {
+            if (type.getSort() != Type.ARRAY) {
+              return false;
+            }
+            int dim = expectedType.getDimensions();
+            expectedType = expectedType.getElementType();
+            if (dim > type.getDimensions() || expectedType.getSort() != Type.OBJECT) {
+              return false;
+            }
+            type = Type.getType(type.getDescriptor().substring(dim));
+          }
+          if (getClass(expectedType).isInterface()) {
             // The merge of class or interface types can only yield class types (because it is not
             // possible in general to find an unambiguous common super interface, due to multiple
             // inheritance). Because of this limitation, we need to relax the subtyping check here
@@ -250,14 +262,16 @@ public class SimpleVerifier extends BasicVerifier {
           return value2;
         }
         int numDimensions = 0;
-        if (type1.getSort() == Type.ARRAY
-            && type2.getSort() == Type.ARRAY
-            && type1.getDimensions() == type2.getDimensions()
-            && type1.getElementType().getSort() == Type.OBJECT
-            && type2.getElementType().getSort() == Type.OBJECT) {
-          numDimensions = type1.getDimensions();
-          type1 = type1.getElementType();
-          type2 = type2.getElementType();
+        if (type1.getSort() == Type.ARRAY && type2.getSort() == Type.ARRAY) {
+          int dim1 =
+              type1.getDimensions() - (type1.getElementType().getSort() == Type.OBJECT ? 0 : 1);
+          int dim2 =
+              type2.getDimensions() - (type2.getElementType().getSort() == Type.OBJECT ? 0 : 1);
+          numDimensions = Math.min(dim1, dim2);
+          if (numDimensions > 0) {
+            type1 = Type.getType(type1.getDescriptor().substring(numDimensions));
+            type2 = Type.getType(type2.getDescriptor().substring(numDimensions));
+          }
         }
         while (true) {
           if (type1 == null || isInterface(type1)) {
